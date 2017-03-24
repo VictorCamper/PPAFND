@@ -6,6 +6,6 @@
    Rodrigo Paredes - Daniel Moreno
 
 #### Integrantes : 
-  1- Felipe Olave
-  2- Daniel Pavez
-  3- Victor Reyes
+1. Felipe Olave
+2. Daniel Pavez
+3. Victor Reyes
