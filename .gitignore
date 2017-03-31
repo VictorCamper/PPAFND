@@ -10,3 +10,13 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+
+# NetBeans specific #
+appAFND/nbproject/private/
+appAFND/build/
+appAFND/nbbuild/
+appAFND/dist/
+appAFND/nbdist/
+appAFND/nbactions.xml
+appAFND/nb-configuration.xml
