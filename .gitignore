@@ -14,6 +14,7 @@ hs_err_pid*
 
 # NetBeans specific #
 appAFND/nbproject/private/
+appAFND/nbprojrct/
 appAFND/build/
 appAFND/nbbuild/
 appAFND/dist/
