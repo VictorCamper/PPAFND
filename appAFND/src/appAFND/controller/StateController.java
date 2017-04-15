@@ -14,8 +14,8 @@ import appAFND.view.StateView;
  */
 public class StateController
 {
-    public State model;
-    public StateView view;
+    private State model;
+    private StateView view;
     
     public StateController(State model,StateView view)
     {

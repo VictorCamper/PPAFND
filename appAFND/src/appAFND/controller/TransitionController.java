@@ -15,8 +15,8 @@ import appAFND.view.TransitionView;
  */
 public class TransitionController
 {
-    public Transition model;
-    public TransitionView view;
+    private Transition model;
+    private TransitionView view;
     
     public TransitionController(Transition model, TransitionView view)
     {
