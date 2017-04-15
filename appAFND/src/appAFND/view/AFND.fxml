@@ -15,11 +15,11 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="appAFND.controller.AFNDController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="509.0" prefWidth="787.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="appAFND.view.AFNDController">
    <center>
       <ScrollPane fx:id="scrollPane" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
          <content>
-            <Canvas fx:id="canvas" height="100.0" width="100.0" />
+            <Canvas fx:id="canvas" height="449.0" onMouseClicked="#drawState" width="793.0" />
          </content>
       </ScrollPane>
    </center>
@@ -78,14 +78,6 @@
                   <Button fx:id="button_transition" mnemonicParsing="false" onAction="#drawTransition" text="Trans">
                      <tooltip>
                         <Tooltip text="Transition" />
-                     </tooltip></Button>
-                  <Button fx:id="button_undo" mnemonicParsing="false" onAction="#undo" text="Undo">
-                     <tooltip>
-                        <Tooltip text="Undo" />
-                     </tooltip></Button>
-                  <Button fx:id="button_redo" mnemonicParsing="false" onAction="#redo" text="Redo">
-                     <tooltip>
-                        <Tooltip text="Redo" />
                      </tooltip></Button>
                   <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Zoom:" />
                   <ComboBox fx:id="combo_zoomLevel" onAction="#zoom" prefHeight="25.0" prefWidth="71.0">
