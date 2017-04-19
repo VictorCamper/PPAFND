@@ -5,8 +5,8 @@
  */
 package appAFND.controller;
 
-import appAFND.State;
-import appAFND.Transition;
+import appAFND.model.State;
+import appAFND.model.Transition;
 import appAFND.view.TransitionView;
 
 /**
