@@ -5,7 +5,7 @@
  */
 package appAFND.view;
 
-import appAFND.State;
+import appAFND.model.State;
 
 /**
  *

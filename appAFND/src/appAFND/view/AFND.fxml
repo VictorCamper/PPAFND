@@ -15,14 +15,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="509.0" prefWidth="787.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="appAFND.view.AFNDController">
-   <center>
-      <ScrollPane fx:id="scrollPane" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-         <content>
-            <Canvas fx:id="canvas" height="449.0" onMouseClicked="#drawState" width="793.0" />
-         </content>
-      </ScrollPane>
-   </center>
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="615.0" prefWidth="1075.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="appAFND.view.AFNDController">
    <top>
       <VBox prefHeight="49.0" prefWidth="600.0" BorderPane.alignment="CENTER">
          <children>
@@ -90,4 +83,11 @@
          </children>
       </VBox>
    </top>
+   <center>
+      <ScrollPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+         <content>
+            <Canvas fx:id="canvas" height="593.0" onMouseClicked="#drawState" width="1104.0" />
+         </content>
+      </ScrollPane>
+   </center>
 </BorderPane>
