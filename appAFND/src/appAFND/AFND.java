@@ -24,6 +24,8 @@ public class AFND extends Application {
         Scene scene = new Scene(root);
         
         stage.setScene(scene);
+        stage.setMinHeight(400);
+        stage.setMinWidth(600);
         stage.show();
     }
 
