@@ -21,6 +21,14 @@ import javafx.scene.paint.Color;
 
 import appAFND.model.Node;
 import appAFND.controller.NodeController;
+import javafx.event.EventHandler;
+import javafx.scene.Cursor;
+import javafx.scene.Group;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.TableView;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 
 /**
  * FXML Controller class
@@ -31,89 +39,176 @@ public class AFNDController implements Initializable
 {
 
     @FXML
-    private Button button_initial;
-    @FXML
-    private Button button_state;
-    @FXML
-    private Button button_final;
-    @FXML
-    private Button button_transition;
-    @FXML
-    private ComboBox<?> combo_zoomLevel;
-    @FXML
     private ScrollPane scrollPane;
-    @FXML
-    private Canvas canvas;
 
     private int radius;
     private ArrayList<NodeController> nodes;
+    @FXML
+    private MenuBar menuBar;
+    @FXML
+    private Menu menuFile;
+    @FXML
+    private Menu menuEdit;
+    @FXML
+    private Menu menuOptions;
+    @FXML
+    private Menu menuHelp;
+    @FXML
+    private Button buttonMove;
+    @FXML
+    private Button buttonState;
+    @FXML
+    private Button buttonTransition;
+    @FXML
+    private Button buttonUndo;
+    @FXML
+    private Button buttonRedo;
+    @FXML
+    private ComboBox<?> comboZoom;
+    @FXML
+    private TableView<?> tableView;
+    
+    private Group group = new Group();
+    private Rectangle canvas = new Rectangle(0, 0, 0, 0);
+    private String buttonPressed;
+    private int canvasWidth;
+    private int canvasHeight;
 
     /**
      * Initializes the controller class.
      */
     @Override
-    public void initialize(URL url, ResourceBundle rb)
-    {
+    public void initialize(URL url, ResourceBundle rb) {
+        this.canvasWidth = 1000;
+        this.canvasHeight = 800;
+        
+        this.canvas.setHeight(canvasHeight);
+        this.canvas.setWidth(this.canvasWidth);
+        this.canvas.setFill(Color.WHITE);
+        this.group.getChildren().add(this.canvas);
+        this.scrollPane.setContent(this.group);
+        
+        
+        
+        this.canvas.setOnMouseClicked(new EventHandler<MouseEvent>(){
+            @Override
+            public void handle(MouseEvent event) {
+                canvasClick(event);
+            }
+        });
+        this.canvas.setOnMouseDragged(new EventHandler<MouseEvent>(){
+            @Override
+            public void handle(MouseEvent event) {
+                canvasDrag(event);
+            }
+        });
+        
         this.radius = 25;
         this.nodes = new ArrayList<>();
     }
+    
+    private void drawState(MouseEvent event) {
+        
+    }
+
+
 
     @FXML
-    private void drawInitial(ActionEvent event)
-    {
+    private void zoom(ActionEvent event) {
     }
 
     @FXML
-    private void drawState(MouseEvent event)
-    {
-        GraphicsContext g = this.canvas.getGraphicsContext2D();
+    private void selectEdit(ActionEvent event) {
+        buttonMove.setCursor(Cursor.OPEN_HAND);
+        buttonPressed = "Edit";
+        event.consume();
+    }
 
-        Node node = new Node(event.getX() - this.radius, event.getY() - this.radius, this.radius, this.nodes.size());
-        NodeView nodeView = new NodeView(this.canvas.getGraphicsContext2D());
-        NodeController nodeController = new NodeController(node, nodeView);
+    @FXML
+    private void selectState(ActionEvent event) {
+        buttonPressed = "State";
+        event.consume();
+    }
+    
+    @FXML
+    private void selectTransition(ActionEvent event) {
+        buttonPressed = "Transition";
+        event.consume();
+    }
 
-        boolean overlapped = false;
+    @FXML
+    private void undo(ActionEvent event) {
+    }
 
-        for (NodeController item : this.nodes)
-        {
-            if (item.compareTo(nodeController) == 0)
-            {
-                overlapped = true;
-            }
+    @FXML
+    private void redo(ActionEvent event) {
+    }
+
+  
+    private void canvasDrag(MouseEvent event) {
+    }
+
+    private void canvasClick(MouseEvent event) {
+        double x = event.getX();                
+        if(x < 25){
+            x = 25;
+        }
+        else if (x > this.canvasWidth-25){
+            x = this.canvasWidth-25;
         }
 
-        if (!overlapped)
-        {
-            nodeController.showNode();
-
-            /*
-            if(this.nodes.size() == 0)
-            {
-            // ADD INITIAL NODE
-            }
-            ADD NODES TO NFA
-             */
-            this.nodes.add(nodeController);
+        double y = event.getY();
+        if(y < 25){
+            y = 25;
         }
-    }
+        else if (y > this.canvasHeight-25){
+            y = this.canvasHeight-25;
+        }
+        
+        switch(buttonPressed){
+            case "Edit":
+                break;
+                
+            case "State":
+                
+                
+                Node node = new Node(x, y, this.radius, this.nodes.size());
+                NodeView nodeView = new NodeView(x, y, this.radius, this.nodes.size());
+                NodeController nodeController = new NodeController(node, nodeView);
 
-    @FXML
-    private void drawFinal(ActionEvent event)
-    {
-    }
+                boolean overlapped = false;
 
-    @FXML
-    private void drawTransition(ActionEvent event)
-    {
-    }
+                for (NodeController item : this.nodes)
+                {
+                    if (item.compareTo(nodeController) == 0)
+                    {
+                        overlapped = true;
+                    }
+                }
 
-    @FXML
-    private void zoom(ActionEvent event)
-    {
-    }
+                if (!overlapped)
+                {
+                    nodeController.drawNode(this.group);
 
-    @FXML
-    private void drawState(ActionEvent event)
-    {
+                    /*
+                    if(this.nodes.size() == 0)
+                    {
+                    // ADD INITIAL NODE
+                    }
+                    ADD NODES TO NFA
+                     */
+                    this.nodes.add(nodeController);
+                }
+                break;
+                
+            case "Transition":
+                break;
+            default:
+                break;
+                
+        
+        }
+        
+        
     }
 }
