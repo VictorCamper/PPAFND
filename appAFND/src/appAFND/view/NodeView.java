@@ -1,7 +1,12 @@
 package appAFND.view;
 
-import javafx.scene.canvas.GraphicsContext;
+import com.sun.javafx.tk.FontLoader;
+import com.sun.javafx.tk.Toolkit;
+import javafx.scene.Group;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 
 /**
  *
@@ -9,18 +14,27 @@ import javafx.scene.paint.Color;
  */
 public class NodeView 
 {
-    private GraphicsContext gc;
+    private Circle circle;
+    private Text text;
 
-    public NodeView(GraphicsContext gc)
+    public NodeView(double x, double y, double radius,int index)
     {
-        this.gc = gc;
+        this.circle = new Circle(x, y, radius, Color.DODGERBLUE);
+        this.circle.setStroke(Color.BLACK);
+        String label = "Q"+index;        
+        this.text = new Text(label);
+        FontLoader fontLoader = Toolkit.getToolkit().getFontLoader();
+        Font font = this.text.getFont();
+        float labelWidth = fontLoader.computeStringWidth(label, font);
+        
+        this.text.setX(x-(labelWidth/2));
+        this.text.setY(y+4);
+        this.text.setWrappingWidth(radius*2);
     }
     
-    public void showNode(double x, double y, double radius,int label)
+    public void drawNode(Group g)
     {
-        this.gc.setFill(Color.DODGERBLUE);
-        this.gc.setStroke(Color.DODGERBLUE);
-        this.gc.strokeOval(x, y, radius*2, radius*2);
-        this.gc.fillText("Q" + label, x + (radius/4)*3, y + radius);
+        g.getChildren().add(this.circle);
+        g.getChildren().add(this.text);        
     }
 }

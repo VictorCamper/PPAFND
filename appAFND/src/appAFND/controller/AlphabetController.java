@@ -2,6 +2,7 @@ package appAFND.controller;
 
 import appAFND.model.Alphabet;
 import appAFND.view.AlphabetView;
+import java.util.ArrayList;
 
 /**
  *
@@ -16,6 +17,10 @@ public class AlphabetController
     {
         this.model = model;
         this.view = view;
+    }
+    
+    public ArrayList<Character> getCharacters(){
+        return model.getCharacters();
     }
     
     public int alphabetSize()

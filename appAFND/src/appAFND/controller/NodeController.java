@@ -2,6 +2,7 @@ package appAFND.controller;
 
 import appAFND.model.Node;
 import appAFND.view.NodeView;
+import javafx.scene.Group;
 
 /**
  *
@@ -64,9 +65,9 @@ public class NodeController implements Comparable<NodeController>
         return this.model.getLabel();
     }
     
-    public void showNode()
+    public void drawNode(Group g)
     {
-        this.view.showNode(this.getNodeX(), this.getNodeY(),this.getNodeRadius(), this.getNodeLabel());
+        this.view.drawNode(g);
     }
 
     @Override
