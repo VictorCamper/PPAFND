@@ -26,6 +26,7 @@ import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
@@ -73,6 +74,8 @@ public class AFNDController implements Initializable
     private String buttonPressed;
     private int canvasWidth;
     private int canvasHeight;
+    @FXML
+    private TabPane tabPane;
 
     /**
      * Initializes the controller class.
@@ -106,12 +109,6 @@ public class AFNDController implements Initializable
         this.radius = 25;
         this.nodes = new ArrayList<>();
     }
-    
-    private void drawState(MouseEvent event) {
-        
-    }
-
-
 
     @FXML
     private void zoom(ActionEvent event) {
@@ -167,11 +164,11 @@ public class AFNDController implements Initializable
         
         switch(buttonPressed){
             case "Edit":
+                //Right click -> Context menu (change label, set final)
+                //Drag node with transitions
                 break;
                 
             case "State":
-                
-                
                 Node node = new Node(x, y, this.radius, this.nodes.size());
                 NodeView nodeView = new NodeView(x, y, this.radius, this.nodes.size());
                 NodeController nodeController = new NodeController(node, nodeView);
@@ -190,13 +187,13 @@ public class AFNDController implements Initializable
                 {
                     nodeController.drawNode(this.group);
 
-                    /*
+                    
                     if(this.nodes.size() == 0)
                     {
                     // ADD INITIAL NODE
                     }
-                    ADD NODES TO NFA
-                     */
+                    //ADD NODES TO NFA
+                    
                     this.nodes.add(nodeController);
                 }
                 break;

@@ -14,6 +14,10 @@ public class Alphabet
     {
         this.alphabet = new ArrayList<>();
     }
+    
+    public ArrayList<Character> getCharacters(){
+        return this.alphabet;
+    }
 
     public int alphabetSize() 
     {
