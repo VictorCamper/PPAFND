@@ -9,6 +9,8 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.ToolBar?>
@@ -88,15 +90,23 @@
             </ComboBox>
          </items>
       </ToolBar>
-      <SplitPane dividerPositions="0.5" maxHeight="2000.0" maxWidth="2000.0" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
-         <items>
-            <ScrollPane fx:id="scrollPane" prefHeight="200.0" prefWidth="200.0" />
-            <TableView fx:id="tableView" minWidth="200.0" prefWidth="200.0">
-              <columns>
-                <TableColumn prefWidth="75.0" text="States" />
-              </columns>
-            </TableView>
-         </items>
-      </SplitPane>
+      <TabPane fx:id="tabPane" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+        <tabs>
+          <Tab text="Automaton 1">
+               <content>
+                  <SplitPane dividerPositions="0.5" maxHeight="2000.0" maxWidth="2000.0" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="200.0">
+                     <items>
+                        <ScrollPane fx:id="scrollPane" prefHeight="200.0" prefWidth="200.0" />
+                        <TableView fx:id="tableView" minWidth="200.0" prefWidth="200.0">
+                          <columns>
+                            <TableColumn prefWidth="75.0" text="States" />
+                          </columns>
+                        </TableView>
+                     </items>
+                  </SplitPane>
+               </content>
+          </Tab>
+        </tabs>
+      </TabPane>
    </children>
 </VBox>

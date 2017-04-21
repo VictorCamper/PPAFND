@@ -29,6 +29,7 @@ public class NodeView
         
         this.text.setX(x-(labelWidth/2));
         this.text.setY(y+4);
+        this.text.setWrappingWidth(radius*2);
     }
     
     public void drawNode(Group g)
