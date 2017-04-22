@@ -25,15 +25,18 @@ public class NFA extends Automaton {
         
         this.f = new HashMap<>();
         for(StateController s : this.states){
-            HashMap<String,ArrayList<StateController>> tVoid = new HashMap<>();
-            tVoid.put("", new ArrayList<>());
+            HashMap<String,ArrayList<StateController>> tVoid;
+            tVoid = new HashMap<>();
+            
+            tVoid.put("\u03BB", new ArrayList<>());
             f.put(s, tVoid);  
+            
             for (char c : this.alphabet.getCharacters()){
                 HashMap<String,ArrayList<StateController>> transition;
                 transition = new HashMap<>();
+                
                 transition.put(Character.toString(c), new ArrayList<>());                
                 f.put(s,transition);
-                              
             }
         }
     }
@@ -44,7 +47,7 @@ public class NFA extends Automaton {
         if (chars.length < 2){
             HashMap<String,ArrayList<StateController>> trans = f.get(from);
             if (chars.length == 0){
-                trans.get("").add(to);
+                trans.get("\u03BB").add(to);
             }
             else{
                 trans.get(Arrays.toString(chars)).add(to);
@@ -60,7 +63,7 @@ public class NFA extends Automaton {
         if (chars.length < 2){
             HashMap<String,ArrayList<StateController>> trans = f.get(from);
             if (chars.length == 0){
-                trans.get("").remove(to);
+                trans.get("\u03BB").remove(to);
             }
             else{
                 trans.get(Arrays.toString(chars)).remove(to);
