@@ -38,16 +38,14 @@ public class AlphabetController
         return this.model.getCharacter(index);
     }
     
-    public void addCharacter(int index, Character element)
+    public boolean addCharacter(Character element)
     {
-        this.model.addCharacter(index, element);
+        return this.model.addCharacter(element);
     }
     
-    public boolean removeCharacter(int index)
+    public boolean removeCharacter(Character element)
     {
-        return this.model.removeCharacter(index);
-    }
-    
-    
+        return this.model.removeCharacter(element);
+    }    
     
 }

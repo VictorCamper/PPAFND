@@ -34,17 +34,14 @@ public class Alphabet
         return alphabet.get(index);
     }
 
-    public void addCharacter(int index, Character element) 
+    public boolean addCharacter(Character element) 
     {
-        alphabet.add(index, element);
+        return alphabet.add(element);
     }
 
-    public boolean removeCharacter(int index) 
+    public boolean removeCharacter(Character element) 
     {
-        return alphabet.remove(index) != null;
+        return alphabet.remove(element);
     }
-    
-    
-    
     
 }
