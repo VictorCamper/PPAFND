@@ -57,7 +57,7 @@ public class Node implements Comparable<Node>
 
         double distance = Math.sqrt(Math.pow(this.x - o.getX(),2) + Math.pow(this.y - o.getY(), 2));
 
-        if(distance <= (radius*2)) // Radius from outer class
+        if(distance <= (radius*2)+6) // Radius from outer class
             return 0;
         return 1;
     }
