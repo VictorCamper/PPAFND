@@ -132,38 +132,6 @@ public class AFNDController implements Initializable
         this.radius = 25;
         this.nodes = new ArrayList<>();
         
-        /*
-        int rowCount = 1;
-        int colCount = 1;
-        
-        GridBase grid = new GridBase(rowCount, colCount);
-       
-        ObservableList<ObservableList<SpreadsheetCell>> rows = FXCollections.observableArrayList();
-        final ObservableList<SpreadsheetCell> header = FXCollections.observableArrayList();
-        
-        SpreadsheetCell cell00 = SpreadsheetCellType.STRING.createCell(0, 0, 1, 1 , "Q/\u03A3");
-        cell00.setStyle("-fx-background-color: #8FE6F3;");
-        
-        header.add(cell00);
-        rows.add(header);
-        */
-                
-        /*for(int row = 0; row < grid.getRowCount(); ++row )
-        {
-            final ObservableList<SpreadsheetCell> list = FXCollections.observableArrayList();
-            for(int col = 0; col < grid.getColumnCount(); ++col)
-            {
-                SpreadsheetCell cell = SpreadsheetCellType.STRING.createCell(row, col, 1, 1, "Hello, World!");
-                //cell.getStyleClass().add("style");
-                cell.setStyle("-fx-background-color: #8FE6F3;");
-                list.add(cell);
-            }
-            rows.add(list);
-        }*/
-        
-        //grid.setRows(rows);
-        
-        //this.spreadSheet = new SpreadsheetView(grid);
         this.updateTable();
         
         
@@ -284,7 +252,6 @@ public class AFNDController implements Initializable
         
         GridBase grid = new GridBase(rowCount, colCount);
         
-        //ObservableList<ObservableList<SpreadsheetCell>> rows = FXCollections.observableArrayList();
         ArrayList<ObservableList<SpreadsheetCell>> rows = new ArrayList<>(grid.getRowCount());
         
         HashMap<StateController, HashMap<String, ArrayList<StateController>>> transitions = this.f.getF();
@@ -304,7 +271,6 @@ public class AFNDController implements Initializable
         
         list = FXCollections.observableArrayList();
         
-        //final ObservableList<SpreadsheetCell> statesList = FXCollections.observableArrayList();
         for (int i = 0; i < this.f.getStates().size(); i++)
         {
             StateController state = this.f.getStates().get(i);
@@ -322,7 +288,6 @@ public class AFNDController implements Initializable
                         label += to.get(k).getStateLabel();
                         if(!(k < to.size() - 1))
                             label += ", ";
-
                     }
                 }
                 else {
