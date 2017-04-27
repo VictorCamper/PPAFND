@@ -36,7 +36,15 @@ public class Alphabet
 
     public boolean addCharacter(Character element) 
     {
-        return alphabet.add(element);
+        if(element == '\u03BB')
+        {
+            this.alphabet.add(0,element);
+            return true;
+        }
+        else
+        {
+            return this.alphabet.add(element);
+        }
     }
 
     public boolean removeCharacter(Character element) 

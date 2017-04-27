@@ -11,7 +11,7 @@ import appAFND.model.State;
  *
  * @author felipe
  */
-public class StateView extends State
+public class StateView
 {
     public void printStateDetails(boolean initial,String label,int positionX,int positionY, boolean active)
     {

@@ -16,11 +16,11 @@ import java.util.HashMap;
  * @author kirit
  */
 public abstract class Automaton {
-    private ArrayList<StateController> states;
-    private AlphabetController alphabet;
-    private HashMap<StateController, HashMap<String, ArrayList<StateController>>> f;
-    private StateController initialState;
-    private ArrayList<StateController> finalStates;
+    protected ArrayList<StateController> states;
+    protected AlphabetController alphabet;
+    protected HashMap<StateController, HashMap<String, ArrayList<StateController>>> f;
+    protected StateController initialState;
+    protected ArrayList<StateController> finalStates;
     
     
     public Automaton(ArrayList<StateController> states, AlphabetController alphabet, ArrayList<StateController> finalStates, StateController initialState) {
@@ -71,6 +71,7 @@ public abstract class Automaton {
     }
     
     public boolean addState(StateController state){
+        this.f.put(state, new HashMap<String, ArrayList<StateController>>());
         return this.states.add(state);
     }
     

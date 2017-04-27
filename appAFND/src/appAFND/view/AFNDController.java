@@ -5,14 +5,13 @@
  */
 package appAFND.view;
 
+import appAFND.controller.AlphabetController;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ScrollPane;
@@ -21,15 +20,30 @@ import javafx.scene.paint.Color;
 
 import appAFND.model.Node;
 import appAFND.controller.NodeController;
+import appAFND.controller.StateController;
+import appAFND.model.Alphabet;
+import appAFND.model.Automaton;
+import appAFND.model.NFA;
+import appAFND.model.State;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Optional;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TableView;
-import javafx.scene.shape.Circle;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.shape.Rectangle;
+import org.controlsfx.control.spreadsheet.GridBase;
+import org.controlsfx.control.spreadsheet.SpreadsheetCell;
+import org.controlsfx.control.spreadsheet.SpreadsheetCellType;
+import org.controlsfx.control.spreadsheet.SpreadsheetView;
 
 /**
  * FXML Controller class
@@ -67,7 +81,9 @@ public class AFNDController implements Initializable
     @FXML
     private ComboBox<?> comboZoom;
     @FXML
-    private TableView<?> tableView;
+    private SplitPane splitPane;
+    
+    private SpreadsheetView spreadSheet;
     
     private Group group = new Group();
     private Rectangle canvas = new Rectangle(0, 0, 0, 0);
@@ -76,13 +92,20 @@ public class AFNDController implements Initializable
     private int canvasHeight;
     @FXML
     private TabPane tabPane;
+    
+    private Automaton f;
+    @FXML
+    private TextField wordField;
+    @FXML
+    private Button buttonExecute;
 
     /**
      * Initializes the controller class.
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        this.canvasWidth = 1000;
+        this.askForAlphabet();
+        this.canvasWidth = 1200;
         this.canvasHeight = 800;
         
         this.canvas.setHeight(canvasHeight);
@@ -91,7 +114,7 @@ public class AFNDController implements Initializable
         this.group.getChildren().add(this.canvas);
         this.scrollPane.setContent(this.group);
         
-        
+        //this.f = new NFA();
         
         this.canvas.setOnMouseClicked(new EventHandler<MouseEvent>(){
             @Override
@@ -108,6 +131,45 @@ public class AFNDController implements Initializable
         
         this.radius = 25;
         this.nodes = new ArrayList<>();
+        
+        /*
+        int rowCount = 1;
+        int colCount = 1;
+        
+        GridBase grid = new GridBase(rowCount, colCount);
+       
+        ObservableList<ObservableList<SpreadsheetCell>> rows = FXCollections.observableArrayList();
+        final ObservableList<SpreadsheetCell> header = FXCollections.observableArrayList();
+        
+        SpreadsheetCell cell00 = SpreadsheetCellType.STRING.createCell(0, 0, 1, 1 , "Q/\u03A3");
+        cell00.setStyle("-fx-background-color: #8FE6F3;");
+        
+        header.add(cell00);
+        rows.add(header);
+        */
+                
+        /*for(int row = 0; row < grid.getRowCount(); ++row )
+        {
+            final ObservableList<SpreadsheetCell> list = FXCollections.observableArrayList();
+            for(int col = 0; col < grid.getColumnCount(); ++col)
+            {
+                SpreadsheetCell cell = SpreadsheetCellType.STRING.createCell(row, col, 1, 1, "Hello, World!");
+                //cell.getStyleClass().add("style");
+                cell.setStyle("-fx-background-color: #8FE6F3;");
+                list.add(cell);
+            }
+            rows.add(list);
+        }*/
+        
+        //grid.setRows(rows);
+        
+        //this.spreadSheet = new SpreadsheetView(grid);
+        this.updateTable();
+        
+        
+        this.splitPane.getItems().addAll(this.spreadSheet);
+        this.splitPane.setDividerPositions(0.99);
+        
     }
 
     @FXML
@@ -204,8 +266,114 @@ public class AFNDController implements Initializable
                 break;
                 
         
+        }  
+    }
+
+    public void setF(Automaton f)
+    {
+        this.f = f;
+    }
+    
+    private void updateTable()
+    {
+        
+        this.f.addState(new StateController(new State(true, "Q1", true), new StateView()));
+
+        int rowCount = this.f.getStates().size() + 1;
+        int colCount = this.f.getAlphabet().alphabetSize() + 1;
+        
+        GridBase grid = new GridBase(rowCount, colCount);
+        
+        //ObservableList<ObservableList<SpreadsheetCell>> rows = FXCollections.observableArrayList();
+        ArrayList<ObservableList<SpreadsheetCell>> rows = new ArrayList<>(grid.getRowCount());
+        
+        HashMap<StateController, HashMap<String, ArrayList<StateController>>> transitions = this.f.getF();
+        
+        ObservableList<SpreadsheetCell> list = FXCollections.observableArrayList();
+        SpreadsheetCell cell00 = SpreadsheetCellType.STRING.createCell(0, 0, 0, 0, "Q/\u03A3");
+        cell00.setStyle("-fx-background-color: #8FE6F3");
+        list.add(cell00);
+        
+        for(int j = 0; j < this.f.getAlphabet().alphabetSize(); j++)
+        {
+            SpreadsheetCell alphCell = SpreadsheetCellType.STRING.createCell(0, j + 1, 0, 0, this.f.getAlphabet().getCharacter(j).toString());
+            list.add(alphCell);
         }
         
+        rows.add(list);
         
+        list = FXCollections.observableArrayList();
+        
+        //final ObservableList<SpreadsheetCell> statesList = FXCollections.observableArrayList();
+        for (int i = 0; i < this.f.getStates().size(); i++)
+        {
+            StateController state = this.f.getStates().get(i);
+            SpreadsheetCell stateCell = SpreadsheetCellType.STRING.createCell(i + 1, 0, 0, 0, state.getStateLabel());
+            list.add(stateCell);
+            HashMap<String, ArrayList<StateController>> stateTransitions = transitions.get(state);
+            for (int j = 0; j < this.f.getAlphabet().alphabetSize(); j++)
+            {
+                ArrayList<StateController> to = stateTransitions.get(this.f.getAlphabet().getCharacter(j).toString());
+                String label = "";
+                if(to != null)
+                {
+                    for (int k = 0; k < to.size(); k++)
+                    {
+                        label += to.get(k).getStateLabel();
+                        if(!(k < to.size() - 1))
+                            label += ", ";
+
+                    }
+                }
+                else {
+                    label += " ";
+                }
+                SpreadsheetCell transCell = SpreadsheetCellType.STRING.createCell(i+ 1, j + 1, 0, 0, label);
+                list.add(transCell);
+            }
+        }
+        rows.add(list);
+        
+        grid.setRows(rows);
+        this.spreadSheet = new SpreadsheetView(grid);
+        this.spreadSheet.setEditable(false);
+        this.spreadSheet.setShowColumnHeader(false);
+        this.spreadSheet.setShowRowHeader(false);
+        
+    }
+    
+    private void askForAlphabet()
+    {
+        TextInputDialog dialog = new TextInputDialog("");
+        dialog.setTitle("Input alphabet");
+        dialog.setHeaderText("Please, insert symbols for alphabet (separated by semicolon ;)");
+        dialog.setContentText("Symbols:");
+        
+        Optional<String> result = dialog.showAndWait();
+        
+        if (result.isPresent())
+        {
+            String[] alphabet = result.get().split(";");
+            char[] chars = new char[alphabet.length];
+            Alphabet alph = new Alphabet();
+            AlphabetView alphView = new AlphabetView();
+            AlphabetController alphController = new AlphabetController(alph, alphView);
+            try
+            {
+                for(String str : alphabet)
+                {
+                    alphController.addCharacter(str.charAt(0));
+                }
+                this.f = new NFA(new ArrayList<>(), alphController, new ArrayList<>(), null);
+            }
+            catch(Exception ex)
+            {
+                System.exit(0);
+            }
+        }
+        else
+        {
+            System.exit(0);
+        }
     }
 }

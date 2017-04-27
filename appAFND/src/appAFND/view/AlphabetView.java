@@ -11,4 +11,12 @@ package appAFND.view;
  */
 public class AlphabetView {
     
+    public void alphabetView(char[] alphabet)
+    {
+        System.out.print("Alphabet : ");
+        for(char alph : alphabet)
+        {
+            System.out.print(alph);
+        }
+    }
 }

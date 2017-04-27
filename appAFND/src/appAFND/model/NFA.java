@@ -12,18 +12,13 @@ import java.util.HashMap;
  */
 public class NFA extends Automaton {
     
-    private ArrayList<StateController> states;
-    private AlphabetController alphabet;
-    private HashMap<StateController, HashMap<String, ArrayList<StateController>>> f;
-    private StateController initialState;
-    private ArrayList<StateController> finalStates;
-
+  
     public NFA(ArrayList<StateController> states, AlphabetController alphabet, ArrayList<StateController> finalStates, StateController initialState) {
         super(states, alphabet, finalStates, initialState);
         //Caracter vacío esta en todos los alphabet
-        this.alphabet.addCharacter("".toCharArray()[0]);
+        alphabet.addCharacter('\u03BB');
         
-        this.f = new HashMap<>();
+        f = new HashMap<>();
         for(StateController s : this.states){
             HashMap<String,ArrayList<StateController>> tVoid;
             tVoid = new HashMap<>();
@@ -72,5 +67,9 @@ public class NFA extends Automaton {
         }
         return false; 
     }
-    
+
+    public HashMap<StateController, HashMap<String, ArrayList<StateController>>> getF()
+    {
+        return f;
+    }
 }
