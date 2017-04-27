@@ -21,13 +21,20 @@ import javafx.scene.paint.Color;
 
 import appAFND.model.Node;
 import appAFND.controller.NodeController;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 
@@ -99,6 +106,7 @@ public class AFNDController implements Initializable
                 canvasClick(event);
             }
         });
+        
         this.canvas.setOnMouseDragged(new EventHandler<MouseEvent>(){
             @Override
             public void handle(MouseEvent event) {
@@ -172,7 +180,7 @@ public class AFNDController implements Initializable
                 Node node = new Node(x, y, this.radius, this.nodes.size());
                 NodeView nodeView = new NodeView(x, y, this.radius, this.nodes.size());
                 NodeController nodeController = new NodeController(node, nodeView);
-
+                
                 boolean overlapped = false;
 
                 for (NodeController item : this.nodes)

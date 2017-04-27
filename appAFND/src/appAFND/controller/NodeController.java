@@ -2,7 +2,10 @@ package appAFND.controller;
 
 import appAFND.model.Node;
 import appAFND.view.NodeView;
+import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.scene.Group;
+import javafx.scene.input.MouseEvent;
 
 /**
  *
@@ -75,5 +78,5 @@ public class NodeController implements Comparable<NodeController>
     {
         return this.model.compareTo(o.getNode());
     }
-
+    
 }
