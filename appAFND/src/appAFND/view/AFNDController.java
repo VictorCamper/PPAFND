@@ -16,10 +16,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
-
 import appAFND.model.Node;
 import appAFND.controller.NodeController;
-<<<<<<< HEAD
 import java.io.File;
 import java.io.IOException;
 import javafx.embed.swing.SwingFXUtils;
@@ -27,27 +25,22 @@ import javafx.event.EventHandler;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.SnapshotParameters;
-=======
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.control.ContextMenu;
->>>>>>> Felipe
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
-<<<<<<< HEAD
 import javafx.scene.image.WritableImage;
-=======
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.shape.Circle;
->>>>>>> Felipe
 import javafx.scene.shape.Rectangle;
 import javax.imageio.ImageIO;
 
@@ -218,19 +211,11 @@ public class AFNDController implements Initializable
                     //ADD NODES TO NFA
                     
                     this.nodes.add(nodeController);
-                }
-                break;
-                
-            case "Transition":
-                TransitionView transition = new TransitionView(x, y, x, y, this.transitions.size());
-                group.getChildren().add(transition.getTransition());
-                transitions.add(transition);
-                /*
-                if (transitions.size()>2){                
-                    WritableImage image = transitions.get(transitions.size()-2).getTransition().snapshot(new SnapshotParameters(), null);
+                    
+                    WritableImage image = group.snapshot(new SnapshotParameters(), null);
 
                     // TODO: probably use a file chooser here
-                    File file = new File("transition"+(transitions.size()-1)+".png");
+                    File file = new File("canvas.png");
 
                     try {
                         ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
@@ -238,7 +223,17 @@ public class AFNDController implements Initializable
                         // TODO: handle exception here
                     }
                 }
-                */
+                break;
+                
+            case "Transition":
+                TransitionView transition = new TransitionView(x, y, x, y, this.transitions.size());
+                group.getChildren().add(transition.getTransition());
+                transitions.add(transition);
+                
+                              
+                    
+                
+                
                 
                 break;
             default:
