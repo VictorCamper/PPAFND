@@ -11,8 +11,6 @@ import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ScrollPane;
@@ -21,15 +19,20 @@ import javafx.scene.paint.Color;
 
 import appAFND.model.Node;
 import appAFND.controller.NodeController;
+import java.io.File;
+import java.io.IOException;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
-import javafx.scene.shape.Circle;
+import javafx.scene.image.WritableImage;
 import javafx.scene.shape.Rectangle;
+import javax.imageio.ImageIO;
 
 /**
  * FXML Controller class
@@ -44,6 +47,7 @@ public class AFNDController implements Initializable
 
     private int radius;
     private ArrayList<NodeController> nodes;
+    private ArrayList<TransitionView> transitions;
     @FXML
     private MenuBar menuBar;
     @FXML
@@ -108,6 +112,7 @@ public class AFNDController implements Initializable
         
         this.radius = 25;
         this.nodes = new ArrayList<>();
+        this.transitions = new ArrayList<>();
     }
 
     @FXML
@@ -199,6 +204,24 @@ public class AFNDController implements Initializable
                 break;
                 
             case "Transition":
+                TransitionView transition = new TransitionView(x, y, x, y, this.transitions.size());
+                group.getChildren().add(transition.getTransition());
+                transitions.add(transition);
+                /*
+                if (transitions.size()>2){                
+                    WritableImage image = transitions.get(transitions.size()-2).getTransition().snapshot(new SnapshotParameters(), null);
+
+                    // TODO: probably use a file chooser here
+                    File file = new File("transition"+(transitions.size()-1)+".png");
+
+                    try {
+                        ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
+                    } catch (IOException e) {
+                        // TODO: handle exception here
+                    }
+                }
+                */
+                
                 break;
             default:
                 break;
