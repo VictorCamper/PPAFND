@@ -17,6 +17,13 @@ public class State
     public int positionY;
     public boolean active;
 
+    public State(boolean initial, String label, boolean active)
+    {
+        this.initial = initial;
+        this.label = label;
+        this.active = active;
+    }
+    
     public boolean getInitial()
     {
         return initial;

@@ -48,4 +48,16 @@ public class AlphabetController
         return this.model.removeCharacter(element);
     }    
     
+    public void updateView()
+    {
+        char[] alphabet = new char[this.model.alphabetSize()];
+        
+        for(int i = 0; i < this.model.alphabetSize(); i++)
+        {
+            alphabet[i] = this.model.getCharacter(i);
+        }
+        
+        this.view.alphabetView(alphabet);
+    }
+    
 }
