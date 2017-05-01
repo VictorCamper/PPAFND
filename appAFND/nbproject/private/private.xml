@@ -3,15 +3,21 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Victor/Desktop/PPAFND/PPAFND/appAFND/src/appAFND/model/Alphabet.java</file>
-            <file>file:/C:/Users/Victor/Desktop/PPAFND/PPAFND/appAFND/src/appAFND/model/Automaton.java</file>
-            <file>file:/C:/Users/Victor/Desktop/PPAFND/PPAFND/appAFND/src/appAFND/controller/NodeController.java</file>
-            <file>file:/C:/Users/Victor/Desktop/PPAFND/PPAFND/appAFND/src/appAFND/model/NFA.java</file>
-            <file>file:/C:/Users/Victor/Desktop/PPAFND/PPAFND/appAFND/src/appAFND/model/State.java</file>
-            <file>file:/C:/Users/Victor/Desktop/PPAFND/PPAFND/appAFND/src/appAFND/model/Node.java</file>
-            <file>file:/C:/Users/Victor/Desktop/PPAFND/PPAFND/appAFND/src/appAFND/view/AFNDController.java</file>
-            <file>file:/C:/Users/Victor/Desktop/PPAFND/PPAFND/appAFND/src/appAFND/view/NodeView.java</file>
-            <file>file:/C:/Users/Victor/Desktop/PPAFND/PPAFND/appAFND/src/appAFND/controller/AlphabetController.java</file>
+<<<<<<< HEAD
+            <file>file:/C:/Users/kirit/Documents/Git/Proyecto%20de%20programacion/PPAFND/appAFND/src/appAFND/model/Node.java</file>
+            <file>file:/C:/Users/kirit/Documents/Git/Proyecto%20de%20programacion/PPAFND/appAFND/src/appAFND/view/NodeView.java</file>
+            <file>file:/C:/Users/kirit/Documents/Git/Proyecto%20de%20programacion/PPAFND/appAFND/src/appAFND/view/AFNDController.java</file>
+            <file>file:/C:/Users/kirit/Documents/Git/Proyecto%20de%20programacion/PPAFND/appAFND/src/appAFND/model/Automaton.java</file>
+            <file>file:/C:/Users/kirit/Documents/Git/Proyecto%20de%20programacion/PPAFND/appAFND/src/appAFND/view/TransitionView.java</file>
+=======
+            <file>file:/C:/Users/felipe/Desktop/Proyecto%20progra/PPAFND/appAFND/src/appAFND/controller/NodeController.java</file>
+            <file>file:/C:/Users/felipe/Desktop/Proyecto%20progra/PPAFND/appAFND/src/appAFND/controller/StateController.java</file>
+            <file>file:/C:/Users/felipe/Desktop/Proyecto%20progra/PPAFND/appAFND/src/appAFND/AFND.java</file>
+            <file>file:/C:/Users/felipe/Desktop/Proyecto%20progra/PPAFND/appAFND/src/appAFND/view/AFNDController.java</file>
+            <file>file:/C:/Users/felipe/Desktop/Proyecto%20progra/PPAFND/appAFND/src/appAFND/model/NFA.java</file>
+            <file>file:/C:/Users/felipe/Desktop/Proyecto%20progra/PPAFND/appAFND/src/appAFND/view/NodeView.java</file>
+            <file>file:/C:/Users/felipe/Desktop/Proyecto%20progra/PPAFND/appAFND/src/appAFND/model/Node.java</file>
+>>>>>>> Felipe
         </group>
     </open-files>
 </project-private>
