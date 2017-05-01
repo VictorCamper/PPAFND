@@ -7,7 +7,6 @@ package appAFND.view;
 
 import appAFND.controller.AlphabetController;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -43,6 +42,7 @@ import javafx.scene.shape.Rectangle;
 import org.controlsfx.control.spreadsheet.GridBase;
 import org.controlsfx.control.spreadsheet.SpreadsheetCell;
 import org.controlsfx.control.spreadsheet.SpreadsheetCellType;
+import org.controlsfx.control.spreadsheet.SpreadsheetColumn;
 import org.controlsfx.control.spreadsheet.SpreadsheetView;
 
 /**
@@ -93,7 +93,7 @@ public class AFNDController implements Initializable
     @FXML
     private TabPane tabPane;
     
-    private Automaton f;
+    private Automaton automaton;
     @FXML
     private TextField wordField;
     @FXML
@@ -114,7 +114,7 @@ public class AFNDController implements Initializable
         this.group.getChildren().add(this.canvas);
         this.scrollPane.setContent(this.group);
         
-        //this.f = new NFA();
+        //this.automaton = new NFA();
         
         this.canvas.setOnMouseClicked(new EventHandler<MouseEvent>(){
             @Override
@@ -237,49 +237,160 @@ public class AFNDController implements Initializable
         }  
     }
 
-    public void setF(Automaton f)
+    public void setAutomaton(Automaton automaton)
     {
-        this.f = f;
+        this.automaton = automaton;
     }
     
     private void updateTable()
     {
         
-        this.f.addState(new StateController(new State(true, "Q1", true), new StateView()));
-
-        int rowCount = this.f.getStates().size() + 1;
-        int colCount = this.f.getAlphabet().alphabetSize() + 1;
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        this.automaton.addState(new StateController(new State(true, "Q1", true), new StateView()));
+        int rowCount = this.automaton.getStates().size() + 1;
+        int colCount = this.automaton.getAlphabet().alphabetSize() + 1;
         
         GridBase grid = new GridBase(rowCount, colCount);
         
         ArrayList<ObservableList<SpreadsheetCell>> rows = new ArrayList<>(grid.getRowCount());
         
-        HashMap<StateController, HashMap<String, ArrayList<StateController>>> transitions = this.f.getF();
+        HashMap<StateController, HashMap<String, ArrayList<StateController>>> transitions = this.automaton.getF();
         
         ObservableList<SpreadsheetCell> list = FXCollections.observableArrayList();
-        SpreadsheetCell cell00 = SpreadsheetCellType.STRING.createCell(0, 0, 0, 0, "Q/\u03A3");
+        SpreadsheetCell cell00 = SpreadsheetCellType.STRING.createCell(0, 0, 1, 1, "Q/\u03A3");
         cell00.setStyle("-fx-background-color: #8FE6F3");
         list.add(cell00);
         
-        for(int j = 0; j < this.f.getAlphabet().alphabetSize(); j++)
+        for(int j = 0; j < this.automaton.getAlphabet().alphabetSize(); j++)
         {
-            SpreadsheetCell alphCell = SpreadsheetCellType.STRING.createCell(0, j + 1, 0, 0, this.f.getAlphabet().getCharacter(j).toString());
+            SpreadsheetCell alphCell = SpreadsheetCellType.STRING.createCell(0, j + 1, 1, 1, this.automaton.getAlphabet().getCharacter(j).toString());
             list.add(alphCell);
         }
         
         rows.add(list);
         
-        list = FXCollections.observableArrayList();
         
-        for (int i = 0; i < this.f.getStates().size(); i++)
+        for (int i = 0; i < this.automaton.getStates().size(); i++)
         {
-            StateController state = this.f.getStates().get(i);
-            SpreadsheetCell stateCell = SpreadsheetCellType.STRING.createCell(i + 1, 0, 0, 0, state.getStateLabel());
+            list = FXCollections.observableArrayList();
+
+            StateController state = this.automaton.getStates().get(i);
+            SpreadsheetCell stateCell = SpreadsheetCellType.STRING.createCell(i + 1, 0, 1, 1, state.getStateLabel());
             list.add(stateCell);
             HashMap<String, ArrayList<StateController>> stateTransitions = transitions.get(state);
-            for (int j = 0; j < this.f.getAlphabet().alphabetSize(); j++)
+            for (int j = 0; j < this.automaton.getAlphabet().alphabetSize(); j++)
             {
-                ArrayList<StateController> to = stateTransitions.get(this.f.getAlphabet().getCharacter(j).toString());
+                ArrayList<StateController> to = stateTransitions.get(this.automaton.getAlphabet().getCharacter(j).toString());
                 String label = "";
                 if(to != null)
                 {
@@ -296,8 +407,9 @@ public class AFNDController implements Initializable
                 SpreadsheetCell transCell = SpreadsheetCellType.STRING.createCell(i+ 1, j + 1, 0, 0, label);
                 list.add(transCell);
             }
+            rows.add(list);
+
         }
-        rows.add(list);
         
         grid.setRows(rows);
         this.spreadSheet = new SpreadsheetView(grid);
@@ -305,6 +417,11 @@ public class AFNDController implements Initializable
         this.spreadSheet.setShowColumnHeader(false);
         this.spreadSheet.setShowRowHeader(false);
         
+        ObservableList<SpreadsheetColumn> columns = this.spreadSheet.getColumns();
+        if(columns.get(0).isColumnFixable())
+            this.spreadSheet.getFixedColumns().addAll(columns.get(0));
+        if(this.spreadSheet.isRowFixable(0))
+            this.spreadSheet.getFixedRows().add(new Integer(0));
     }
     
     private void askForAlphabet()
@@ -329,7 +446,7 @@ public class AFNDController implements Initializable
                 {
                     alphController.addCharacter(str.charAt(0));
                 }
-                this.f = new NFA(new ArrayList<>(), alphController, new ArrayList<>(), null);
+                this.automaton = new NFA(new ArrayList<>(), alphController, new ArrayList<>(), null);
             }
             catch(Exception ex)
             {
