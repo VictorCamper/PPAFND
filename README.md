@@ -18,7 +18,7 @@
 #### Código - Design Patterns
 1. [Design Patterns Java tutorial - Tutorialspoint](https://www.tutorialspoint.com/design_pattern/index.htm)
 2. [Model View Controller - Design Pattern example](https://www.tutorialspoint.com/design_pattern/mvc_pattern.htm)
-3. [.NET Design Patterns](https://www.tutorialspoint.com/design_pattern/index.htm)
+3. [.NET Design Patterns](http://www.dofactory.com/net/design-patterns)
 
 
 #### Git

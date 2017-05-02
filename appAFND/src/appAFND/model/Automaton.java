@@ -16,11 +16,11 @@ import java.util.HashMap;
  * @author kirit
  */
 public abstract class Automaton {
-    private ArrayList<StateController> states;
-    private AlphabetController alphabet;
-    private HashMap<StateController, HashMap<String, ArrayList<StateController>>> f;
-    private StateController initialState;
-    private ArrayList<StateController> finalStates;
+    protected ArrayList<StateController> states;
+    protected AlphabetController alphabet;
+    protected HashMap<StateController, HashMap<String, ArrayList<StateController>>> f;
+    protected StateController initialState;
+    protected ArrayList<StateController> finalStates;
     
     
     public Automaton(ArrayList<StateController> states, AlphabetController alphabet, ArrayList<StateController> finalStates, StateController initialState) {
@@ -29,6 +29,8 @@ public abstract class Automaton {
         this.finalStates = finalStates;
         this.initialState = initialState;
     }
+    
+    
     
     abstract boolean addTransition(StateController from, StateController to, String transition);
     
@@ -40,7 +42,7 @@ public abstract class Automaton {
         
         for (char c : characters){
             if (!alphabet.alphabetContains(c)){
-                valid = false;
+                valid = false; 
                 //Error, the word have a character that isn't in the alphabet of the automaton.  
             }            
         }
@@ -59,6 +61,61 @@ public abstract class Automaton {
         return false;
         
     }
+
+    public ArrayList<StateController> getStates() {
+        return states;
+    }
+
+    public void setStates(ArrayList<StateController> states) {
+        this.states = states;
+    }
     
+    public boolean addState(StateController state){
+        this.f.put(state, new HashMap<String, ArrayList<StateController>>());
+        return this.states.add(state);
+    }
     
+    public boolean removeState(StateController state){
+        return this.states.remove(state);
+    }
+
+    public AlphabetController getAlphabet() {
+        return alphabet;
+    }
+
+    public void setAlphabet(AlphabetController alphabet) {
+        this.alphabet = alphabet;
+    }
+    
+    public boolean addCharacterToAlphabet(char c){
+        return this.alphabet.addCharacter(c);
+    }
+    
+    public boolean removeCharacterFromAlphabet(char c){
+        return this.alphabet.removeCharacter(c);
+    }
+
+    public HashMap<StateController, HashMap<String, ArrayList<StateController>>> getF() {
+        return f;
+    }
+
+    public void setF(HashMap<StateController, HashMap<String, ArrayList<StateController>>> f) {
+        this.f = f;
+    }
+
+    public StateController getInitialState() {
+        return initialState;
+    }
+
+    public void setInitialState(StateController initialState) {
+        this.initialState = initialState;
+    }
+
+    public ArrayList<StateController> getFinalStates() {
+        return finalStates;
+    }
+
+    public void setFinalStates(ArrayList<StateController> finalStates) {
+        this.finalStates = finalStates;
+    }
 }

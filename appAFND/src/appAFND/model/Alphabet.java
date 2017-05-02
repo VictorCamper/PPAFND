@@ -34,17 +34,22 @@ public class Alphabet
         return alphabet.get(index);
     }
 
-    public void addCharacter(int index, Character element) 
+    public boolean addCharacter(Character element) 
     {
-        alphabet.add(index, element);
+        if(element == '\u03BB')
+        {
+            this.alphabet.add(0,element);
+            return true;
+        }
+        else
+        {
+            return this.alphabet.add(element);
+        }
     }
 
-    public boolean removeCharacter(int index) 
+    public boolean removeCharacter(Character element) 
     {
-        return alphabet.remove(index) != null;
+        return alphabet.remove(element);
     }
-    
-    
-    
     
 }
