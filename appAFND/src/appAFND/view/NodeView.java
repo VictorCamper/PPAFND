@@ -30,9 +30,8 @@ public class NodeView
 
     public NodeView(double x, double y, double radius, int index)
     {
-        MenuItem changeInitial = new MenuItem("Change to initial");
         MenuItem changeFinal = new MenuItem("Change to final");
-        context.getItems().addAll(changeInitial, changeFinal);
+        context.getItems().addAll(changeFinal);
         
         this.circle = new Circle(x, y, radius, Color.DEEPSKYBLUE);
         this.circle.setStroke(Color.DEEPSKYBLUE);
@@ -65,19 +64,7 @@ public class NodeView
                 contextMenu(event);
             }
         });
-        
-        changeInitial.setOnAction(new EventHandler<ActionEvent>(){
 
-            @Override
-            public void handle(ActionEvent event)
-            {
-                // Para cambiar a nodo inicial.
-                isInitialNodo(event);
-            }
-        
-        
-        });
-        
         changeFinal.setOnAction(new EventHandler<ActionEvent> (){
           @Override
           public void handle(ActionEvent event)
@@ -94,14 +81,6 @@ public class NodeView
     {
         circle.setStroke(Color.web("#006485"));
         circle.setStrokeWidth(3);
-    }
-    
-    private void isInitialNodo(ActionEvent event)
-    {
-        Polygon arrow = new Polygon(new double[] {0,0,10,10,-10,10});
-        arrow.setTranslateX(circle.getCenterX()-circle.getRadius());
-        arrow.setTranslateY(circle.getCenterY());
-        arrow.getTransforms().add(new Rotate(90,0,0));
     }
     
     private void contextMenu(MouseEvent event)
