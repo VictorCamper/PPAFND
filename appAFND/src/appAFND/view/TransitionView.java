@@ -36,9 +36,19 @@ public class TransitionView {
     private Arrow arrow;
     private Text text;
     private Group group = new Group();
+    private double canvasHeight, canvasWidth;
     
-    public TransitionView(double sx, double sy, double ex, double ey, int index){
+    public TransitionView(Circle c1, Circle c2, String label, double canvasHeight, double canvasWidth){
         this.curve = new QuadCurve();
+        this.canvasHeight = canvasHeight;
+        this.canvasWidth = canvasWidth;
+        
+        //Calculate the start/end points of the transition
+        double sx = calcX(c1,c2);
+        double sy = calcY(c1,c2);
+        double ex = calcX(c2,c1);
+        double ey = calcY(c2,c1);
+        
         this.curve.setStartX(sx);
         this.curve.setStartY(sy);        
         this.curve.setEndX(ex);
@@ -54,17 +64,16 @@ public class TransitionView {
         this.curve.setStrokeLineCap(StrokeLineCap.BUTT);
         this.curve.setFill(Color.TRANSPARENT);
         
-        String label = index >= 0 && index <= 25 ? String.valueOf((char)(index + 65)) : null;
         this.text = new Text(label);
         FontLoader fontLoader = Toolkit.getToolkit().getFontLoader();
         Font font = this.text.getFont();
-        float labelWidth = fontLoader.computeStringWidth(label, font);
-        this.text.setX(midx-(labelWidth/2));
-        this.text.setY(midy-10);
+        float textWidth = fontLoader.computeStringWidth(label, font);
+        this.text.setX(midx-(textWidth/2));
+        this.text.setY(midy-12);        
         
-        this.center = new AnchorCenter(Color.GOLD, curve, text, labelWidth);
-        this.start = new Anchor(Color.TRANSPARENT, curve.startXProperty(), curve.startYProperty(), curve, center, text, labelWidth, true);
-        this.end = new Anchor(Color.TRANSPARENT, curve.endXProperty(), curve.endYProperty(), curve, center, text, labelWidth, false);
+        this.center = new AnchorCenter(Color.GOLD, curve, text, textWidth);
+        this.start = new Anchor(Color.TRANSPARENT, curve.startXProperty(), curve.startYProperty(), curve, center, text, textWidth, true);
+        this.end = new Anchor(Color.TRANSPARENT, curve.endXProperty(), curve.endYProperty(), curve, center, text, textWidth, false);
         double[] arrowShape = new double[]{0, 0, 5, 10, -5, 10};
         this.arrow = new Arrow(curve, 1f, arrowShape);
         
@@ -74,6 +83,28 @@ public class TransitionView {
     public Group getTransition() {
         return this.group;
     }
+
+    private double calcX(Circle c1, Circle c2) {
+        double Ax = c1.getCenterX();
+        double Ay = c1.getCenterY();
+        double Bx = c2.getCenterX();
+        double By = c2.getCenterY();
+        double r = c1.getRadius()+(c1.getStrokeWidth()/2);
+        double distance = Math.sqrt(Math.pow(Bx-Ax,2) + Math.pow(By-Ay,2));
+        return Ax+(r*(Bx-Ax)/distance);
+    }
+    
+    private double calcY(Circle c1, Circle c2) {
+        double Ax = c1.getCenterX();
+        double Ay = c1.getCenterY();
+        double Bx = c2.getCenterX();
+        double By = c2.getCenterY();
+        double r = c1.getRadius()+(c1.getStrokeWidth()/2);
+        double distance = Math.sqrt(Math.pow(Bx-Ax,2) + Math.pow(By-Ay,2));
+        return Ay+(r*(By-Ay)/distance);
+    }
+
+    
 
 
     public class Arrow extends Polygon {
@@ -183,7 +214,7 @@ public class TransitionView {
 
             x.bind(centerXProperty());
             y.bind(centerYProperty());
-            enableDrag(curve, center, text, labelWidth, isStart);
+            //enableDrag(curve, center, text, labelWidth, isStart);
         }
 
         // make a node movable by dragging it around with the mouse.
@@ -208,7 +239,7 @@ public class TransitionView {
                 @Override
                 public void handle(MouseEvent mouseEvent) {
                     double newX = mouseEvent.getX() + dragDelta.x;
-                    if (newX > 0 && newX < getScene().getWidth()) {
+                    if (newX > getRadius() && newX < canvasWidth-getRadius()) {
                         setCenterX(newX);
                         if (isStart) {
                             center.setX((curve.endXProperty().get() + newX) * 0.25 + 0.5 * curve.controlXProperty().get());
@@ -220,7 +251,7 @@ public class TransitionView {
 
                     }
                     double newY = mouseEvent.getY() + dragDelta.y;
-                    if (newY > 0 && newY < getScene().getHeight()) {
+                    if (newY > getRadius() && newY < canvasHeight-getRadius()) {
                         setCenterY(newY);
                         if (isStart) {
                             center.setY((curve.endYProperty().get() + newY) * 0.25 + 0.5 * curve.controlYProperty().get());
@@ -292,29 +323,30 @@ public class TransitionView {
                     // record a delta distance for the drag and drop operation.
                     dragDelta.x = getCenterX() - mouseEvent.getX();
                     dragDelta.y = getCenterY() - mouseEvent.getY();
-                    getScene().setCursor(Cursor.MOVE);
+                    getScene().setCursor(Cursor.CLOSED_HAND);
                 }
             });
             setOnMouseReleased(new EventHandler<MouseEvent>() {
                 @Override
                 public void handle(MouseEvent mouseEvent) {
-                    getScene().setCursor(Cursor.HAND);
+                    getScene().setCursor(Cursor.OPEN_HAND);
                 }
             });
             setOnMouseDragged(new EventHandler<MouseEvent>() {
                 @Override
                 public void handle(MouseEvent mouseEvent) {
                     double newX = mouseEvent.getX() + dragDelta.x;
-                    if (newX > 0 && newX < getScene().getWidth()) {
+                    
+                    /*if (newX > getRadius() && newX < canvasWidth-getRadius()) {
                         setCenterX(newX);
                         text.setX(newX-(labelWidth/2));
                         curve.setControlX(2 * newX - ((curve.startXProperty().get() + curve.endXProperty().get()) * (0.5)));
-                    }
+                    }*/
                     
                     double newY = mouseEvent.getY() + dragDelta.y;
-                    if (newY > 0 && newY < getScene().getHeight()) {
+                    if (newY > getRadius()+text.getBoundsInLocal().getHeight() && newY < canvasHeight) {                        
                         setCenterY(newY);
-                        text.setY(newY-10);
+                        text.setY(newY-12);
                         curve.setControlY(2 * newY - ((curve.startYProperty().get() + curve.endYProperty().get()) * (0.5)));
                     }
 
@@ -327,7 +359,7 @@ public class TransitionView {
                 @Override
                 public void handle(MouseEvent mouseEvent) {
                     if (!mouseEvent.isPrimaryButtonDown()) {
-                        getScene().setCursor(Cursor.HAND);
+                        getScene().setCursor(Cursor.OPEN_HAND);
                     }
                 }
             });

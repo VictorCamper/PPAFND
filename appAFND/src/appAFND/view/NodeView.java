@@ -28,7 +28,7 @@ public class NodeView
     private ContextMenu context = new ContextMenu();
     
 
-    public NodeView(double x, double y, double radius, int index)
+    public NodeView(AFNDController afndcontroller, double x, double y, double radius, String name)
     {
         MenuItem changeFinal = new MenuItem("Change to final");
         context.getItems().addAll(changeFinal);
@@ -37,7 +37,7 @@ public class NodeView
         this.circle.setStroke(Color.DEEPSKYBLUE);
         this.circle.setStrokeWidth(3);
         
-        String label = "Q" + index;
+        String label = name;
         this.text = new Text(label);
         FontLoader fontLoader = Toolkit.getToolkit().getFontLoader();
         Font font = this.text.getFont();
@@ -52,6 +52,9 @@ public class NodeView
             @Override
             public void handle(MouseEvent event)
             {
+                if (event.getButton() == MouseButton.PRIMARY){
+                    afndcontroller.circleClicked(circle);
+                }
                 contextMenu(event);
             }
         });
@@ -61,6 +64,9 @@ public class NodeView
             @Override
             public void handle(MouseEvent event)
             {
+                if (event.getButton() == MouseButton.PRIMARY){
+                    afndcontroller.circleClicked(circle);
+                }
                 contextMenu(event);
             }
         });
@@ -80,7 +86,6 @@ public class NodeView
     private void isFinalNodo()
     {
         circle.setStroke(Color.web("#006485"));
-        circle.setStrokeWidth(3);
     }
     
     private void contextMenu(MouseEvent event)
@@ -100,5 +105,13 @@ public class NodeView
     {
         g.getChildren().add(this.circle);
         g.getChildren().add(this.text);
+    }
+    
+    public Circle getCircle(){
+        return this.circle;
+    }
+    
+    public Text getText(){
+        return this.text;
     }
 }

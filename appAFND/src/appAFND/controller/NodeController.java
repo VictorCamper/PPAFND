@@ -72,6 +72,10 @@ public class NodeController implements Comparable<NodeController>
     {
         this.view.drawNode(g);
     }
+    
+    public NodeView getNodeView(){
+        return this.view;
+    }            
 
     @Override
     public int compareTo(NodeController o)
