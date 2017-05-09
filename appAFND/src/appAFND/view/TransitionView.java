@@ -337,11 +337,11 @@ public class TransitionView {
                 public void handle(MouseEvent mouseEvent) {
                     double newX = mouseEvent.getX() + dragDelta.x;
                     
-                    /*if (newX > getRadius() && newX < canvasWidth-getRadius()) {
+                    if (newX > getRadius() && newX < canvasWidth-getRadius()) {
                         setCenterX(newX);
                         text.setX(newX-(labelWidth/2));
                         curve.setControlX(2 * newX - ((curve.startXProperty().get() + curve.endXProperty().get()) * (0.5)));
-                    }*/
+                    }
                     
                     double newY = mouseEvent.getY() + dragDelta.y;
                     if (newY > getRadius()+text.getBoundsInLocal().getHeight() && newY < canvasHeight) {                        
