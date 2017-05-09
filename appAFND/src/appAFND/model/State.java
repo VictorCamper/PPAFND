@@ -24,14 +24,14 @@ public class State
         this.active = active;
     }
     
-    public boolean getInitial()
+    public boolean isInitial()
     {
         return initial;
     }
 
-    public void setInitial(boolean initial)
+    public void setInitial()
     {
-        this.initial = initial;
+        this.initial = true;
     }
 
     public String getLabel()
