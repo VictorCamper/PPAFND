@@ -20,16 +20,18 @@ import javafx.scene.transform.Rotate;
  *
  * @author Victor
  */
-public class NodeView
+public class StateView implements Comparable<StateView>
 {
 
     private Circle circle;
     private Text text;
     private ContextMenu context = new ContextMenu();
+    private StateView view;
     
 
-    public NodeView(AFNDController afndcontroller, double x, double y, double radius, String name)
+    public StateView(AFNDController afndcontroller, double x, double y, double radius, String name)
     {
+        view = this;
         MenuItem changeFinal = new MenuItem("Change to final");
         context.getItems().addAll(changeFinal);
         
@@ -53,7 +55,7 @@ public class NodeView
             public void handle(MouseEvent event)
             {
                 if (event.getButton() == MouseButton.PRIMARY){
-                    afndcontroller.circleClicked(circle);
+                    afndcontroller.stateClicked(view);
                 }
                 contextMenu(event);
             }
@@ -65,7 +67,7 @@ public class NodeView
             public void handle(MouseEvent event)
             {
                 if (event.getButton() == MouseButton.PRIMARY){
-                    afndcontroller.circleClicked(circle);
+                    afndcontroller.stateClicked(view);
                 }
                 contextMenu(event);
             }
@@ -113,5 +115,23 @@ public class NodeView
     
     public Text getText(){
         return this.text;
+    }
+    
+    public double getCenterX(){
+        return circle.getCenterX();
+    }
+    
+    public double getCenterY(){
+        return circle.getCenterY();
+    }
+
+    @Override
+    public int compareTo(StateView o) {
+        double  distance = Math.sqrt(Math.pow(this.getCenterX() - o.getCenterX(),2)+Math.pow(this.getCenterY() - o.getCenterY(),2));
+        
+        if(distance <= (this.getCircle().getRadius()*2 + this.getCircle().getStrokeWidth()/2))
+            return 0;
+        return 1;
+       
     }
 }
