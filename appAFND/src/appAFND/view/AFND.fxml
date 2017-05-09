@@ -1,101 +1,114 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.Cursor?>
-<?import javafx.scene.canvas.Canvas?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.input.KeyCodeCombination?>
-<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="appAFND.controller.AFNDController">
-   <center>
-      <ScrollPane fx:id="scrollPane" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-         <content>
-            <Canvas fx:id="canvas" height="100.0" width="100.0" />
-         </content>
-      </ScrollPane>
-   </center>
-   <top>
-      <VBox prefHeight="49.0" prefWidth="600.0" BorderPane.alignment="CENTER">
-         <children>
-            <MenuBar>
-              <menus>
-                <Menu mnemonicParsing="false" text="File">
-                  <items>
-                        <MenuItem mnemonicParsing="false" text="New..." />
-                        <MenuItem mnemonicParsing="false" text="Open">
-                           <accelerator>
-                              <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
-                           </accelerator>
-                        </MenuItem>
-                        <MenuItem mnemonicParsing="false" text="Save">
-                           <accelerator>
-                              <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
-                           </accelerator>
-                        </MenuItem>
-                    <MenuItem mnemonicParsing="false" text="Quit" />
-                  </items>
-                </Menu>
-                <Menu mnemonicParsing="false" text="Edit">
-                  <items>
-                    <MenuItem mnemonicParsing="false" text="Delete" />
-                  </items>
-                </Menu>
-                  <Menu mnemonicParsing="false" text="Options">
-                    <items>
-                      <MenuItem mnemonicParsing="false" text="Transition's matrix" />
-                    </items>
-                  </Menu>
-                <Menu mnemonicParsing="false" text="Help">
-                  <items>
-                    <MenuItem mnemonicParsing="false" text="About" />
-                  </items>
-                </Menu>
-              </menus>
-            </MenuBar>
-            <ToolBar prefHeight="40.0" prefWidth="200.0">
-              <items>
-                <Button fx:id="button_initial" mnemonicParsing="false" onAction="#drawInitial" text="Initial">
-                     <tooltip>
-                        <Tooltip text="Initial state" />
-                     </tooltip></Button>
-                  <Button fx:id="button_state" mnemonicParsing="false" onAction="#drawState" text="State">
-                     <tooltip>
-                        <Tooltip text="Common state" />
-                     </tooltip></Button>
-                  <Button fx:id="button_final" mnemonicParsing="false" onAction="#drawFinal" text="Final">
-                     <tooltip>
-                        <Tooltip text="Final state" />
-                     </tooltip></Button>
-                  <Button fx:id="button_transition" mnemonicParsing="false" onAction="#drawTransition" text="Trans">
-                     <tooltip>
-                        <Tooltip text="Transition" />
-                     </tooltip></Button>
-                  <Button fx:id="button_undo" mnemonicParsing="false" onAction="#undo" text="Undo">
-                     <tooltip>
-                        <Tooltip text="Undo" />
-                     </tooltip></Button>
-                  <Button fx:id="button_redo" mnemonicParsing="false" onAction="#redo" text="Redo">
-                     <tooltip>
-                        <Tooltip text="Redo" />
-                     </tooltip></Button>
-                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Zoom:" />
-                  <ComboBox fx:id="combo_zoomLevel" onAction="#zoom" prefHeight="25.0" prefWidth="71.0">
-                     <cursor>
-                        <Cursor fx:constant="TEXT" />
-                     </cursor>
-                  </ComboBox>
-              </items>
-            </ToolBar>
-         </children>
-      </VBox>
-   </top>
-</BorderPane>
+<VBox prefHeight="415.0" prefWidth="837.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="appAFND.view.AFNDController">
+   <children>
+      <MenuBar fx:id="menuBar">
+         <menus>
+            <Menu fx:id="menuFile" mnemonicParsing="false" text="File">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="New..." />
+                  <MenuItem mnemonicParsing="false" text="Open">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+                  <MenuItem mnemonicParsing="false" text="Save">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+                  <MenuItem mnemonicParsing="false" text="Quit" />
+               </items>
+            </Menu>
+            <Menu fx:id="menuEdit" mnemonicParsing="false" text="Edit">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="Delete" />
+               </items>
+            </Menu>
+            <Menu fx:id="menuOptions" mnemonicParsing="false" text="Options">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="Transition's matrix" />
+               </items>
+            </Menu>
+            <Menu fx:id="menuHelp" mnemonicParsing="false" text="Help">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="About" />
+               </items>
+            </Menu>
+         </menus>
+      </MenuBar>
+      <ToolBar prefHeight="40.0" prefWidth="200.0">
+         <items>
+            <Button fx:id="buttonMove" mnemonicParsing="false" onAction="#selectEdit" text="Edit">
+               <tooltip>
+                  <Tooltip text="Edit states and transitions" />
+               </tooltip></Button>
+            <Button fx:id="buttonState" mnemonicParsing="false" onAction="#selectState" text="State">
+               <tooltip>
+                  <Tooltip text="Draw states" />
+               </tooltip>
+            </Button>
+            <Button fx:id="buttonTransition" mnemonicParsing="false" onAction="#selectTransition" text="Trans">
+               <tooltip>
+                  <Tooltip text="Draw transitions" />
+               </tooltip>
+            </Button>
+            <Separator orientation="VERTICAL" />
+            <Button fx:id="buttonUndo" mnemonicParsing="false" onAction="#undo" text="Undo">
+               <tooltip>
+                  <Tooltip text="Undo" />
+               </tooltip></Button>
+            <Button fx:id="buttonRedo" mnemonicParsing="false" onAction="#redo" text="Redo">
+               <tooltip>
+                  <Tooltip text="Redo" />
+               </tooltip></Button>
+            <Separator orientation="VERTICAL" />
+            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Zoom:" />
+            <ComboBox fx:id="comboZoom" onAction="#zoom" prefHeight="25.0" prefWidth="71.0">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+            </ComboBox>
+            <Separator orientation="VERTICAL" />
+            <TextField fx:id="wordField" promptText="Word" />
+            <Button fx:id="buttonExecute" alignment="CENTER_RIGHT" mnemonicParsing="false" text="Execute">
+               <opaqueInsets>
+                  <Insets right="10.0" />
+               </opaqueInsets>
+            </Button>
+         </items>
+      </ToolBar>
+      <TabPane fx:id="tabPane" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+        <tabs>
+          <Tab text="Automaton 1">
+               <content>
+                  <SplitPane fx:id="splitPane" maxHeight="2000.0" maxWidth="2000.0" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="200.0">
+                     <items>
+                        <ScrollPane fx:id="scrollPane" prefHeight="200.0" prefWidth="761.0" />
+                     </items>
+                  </SplitPane>
+               </content>
+          </Tab>
+        </tabs>
+      </TabPane>
+   </children>
+</VBox>

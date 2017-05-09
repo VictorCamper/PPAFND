@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package appAFND;
+package appAFND.model;
 
 /**
  *
@@ -17,14 +17,21 @@ public class State
     public int positionY;
     public boolean active;
 
-    public boolean getInitial()
+    public State(boolean initial, String label, boolean active)
+    {
+        this.initial = initial;
+        this.label = label;
+        this.active = active;
+    }
+    
+    public boolean isInitial()
     {
         return initial;
     }
 
-    public void setInitial(boolean initial)
+    public void setInitial()
     {
-        this.initial = initial;
+        this.initial = true;
     }
 
     public String getLabel()

@@ -3,40 +3,73 @@ package appAFND.model;
 import appAFND.controller.AlphabetController;
 import appAFND.controller.StateController;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
+import java.util.HashMap;
 
 /**
  *
  * @author Victor
  */
-public class NFA {
+public class NFA extends Automaton {
     
-    
-    private List<StateController> states;
-    private AlphabetController alphabet;
-    private ArrayList<StateController> finalStates;
-    private StateController initialState;
-    private ArrayList<ArrayList> f;
-
-    public NFA(List<StateController> states, AlphabetController alphabet, ArrayList<StateController> finalStates, StateController initialState) {
-        this.states = states;
-        this.alphabet = alphabet;
-        this.finalStates = finalStates;
-        this.initialState = initialState;
+  
+    public NFA(ArrayList<StateController> states, AlphabetController alphabet, ArrayList<StateController> finalStates, StateController initialState) {
+        super(states, alphabet, finalStates, initialState);
+        //Caracter vacío esta en todos los alphabet
+        alphabet.addCharacter('\u03BB');
         
-        this.f = new ArrayList<>();
-        this.f.add(new ArrayList<String>()); // State's type [0]
-        this.f.add(new ArrayList<StateController>()); // States List [1]
-        
-        /**
-         * i is for alphabet[i]
-         * j will be for states[j]
-         * f[i][j] -> transition
-         */
-        for (int i = 0; i < this.alphabet.alphabetSize(); i++) {
-            this.f.add(new ArrayList<String>()); // One ArrayList for each alphabet's character | this.f[i][j] = q1-q2-...
+        f = new HashMap<>();
+        for(StateController s : this.states){
+            HashMap<String,ArrayList<StateController>> tVoid;
+            tVoid = new HashMap<>();
+            
+            tVoid.put("\u03BB", new ArrayList<>());
+            f.put(s, tVoid);  
+            
+            for (char c : this.alphabet.getCharacters()){
+                HashMap<String,ArrayList<StateController>> transition;
+                transition = new HashMap<>();
+                
+                transition.put(Character.toString(c), new ArrayList<>());                
+                f.put(s,transition);
+            }
         }
     }
-    
-    
+
+    @Override
+    public boolean addTransition(StateController from, StateController to, String transition) {
+        char[] chars = transition.toCharArray();
+        if (chars.length < 2){
+            HashMap<String,ArrayList<StateController>> trans = f.get(from);
+            if (chars.length == 0){
+                trans.get("\u03BB").add(to);
+            }
+            else{
+                trans.get(Arrays.toString(chars)).add(to);
+            }
+            return true;
+        }
+        return false;        
+    }
+
+    @Override
+    public boolean removeTransition(StateController from, StateController to, String transition) {
+       char[] chars = transition.toCharArray();
+        if (chars.length < 2){
+            HashMap<String,ArrayList<StateController>> trans = f.get(from);
+            if (chars.length == 0){
+                trans.get("\u03BB").remove(to);
+            }
+            else{
+                trans.get(Arrays.toString(chars)).remove(to);
+            }
+            return true;
+        }
+        return false; 
+    }
+
+    public HashMap<StateController, HashMap<String, ArrayList<StateController>>> getF()
+    {
+        return f;
+    }
 }

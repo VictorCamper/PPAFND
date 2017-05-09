@@ -1,23 +1,23 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package appAFND.controller;
 
-import appAFND.State;
+import appAFND.model.State;
 import appAFND.view.StateView;
+import javafx.event.EventHandler;
+import javafx.event.EventType;
+import javafx.scene.Group;
+import javafx.scene.input.MouseEvent;
 
 /**
  *
- * @author felipe
+ * @author Victor
  */
-public class StateController
+public class StateController implements Comparable<StateController>
 {
+
     private State model;
     private StateView view;
-    
-    public StateController(State model,StateView view)
+
+    public StateController(State model, StateView view)
     {
         this.model = model;
         this.view = view;
@@ -25,12 +25,12 @@ public class StateController
     
     public void setStateInitial(Boolean initial)
     {
-        model.setInitial(initial);
+        model.setInitial();
     }
     
-    public boolean getStateInitial()
+    public boolean isStateInitial()
     {
-        return model.getInitial();
+        return model.isInitial();
     }
     
     public void setStateLabel(String label)
@@ -42,26 +42,6 @@ public class StateController
     {
         return model.getLabel();
     }
-    
-    public void setStatePositionX(int positionX)
-    {
-        model.setPositionX(positionX);
-    }
-    
-    public int getStatePositionX()
-    {
-        return model.getPositionX();
-    }
-    
-    public void setStatePositionY(int positionY)
-    {
-        model.setPositionY(positionY);
-    }
-    
-    public int getStatePositionY()
-    {
-        return model.getPositionY();
-    }
 
     public boolean isStateActive()
     {
@@ -72,4 +52,25 @@ public class StateController
     {
         model.setActive(active);
     }
+    
+    private State getState()
+    {
+        return this.model;
+    }
+    
+    public void drawNode(Group g)
+    {
+        this.view.drawNode(g);
+    }
+    
+    public StateView getStateView(){
+        return this.view;
+    }            
+
+    @Override
+    public int compareTo(StateController o)
+    {
+        return this.view.compareTo(o.getStateView());
+    }
+    
 }
