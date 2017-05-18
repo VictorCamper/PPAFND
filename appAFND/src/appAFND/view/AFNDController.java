@@ -355,6 +355,7 @@ public class AFNDController implements Initializable
                 }
                 SpreadsheetCell transCell = SpreadsheetCellType.STRING.createCell(i+ 1, j + 1, 0, 0, label);
                 transCell.setEditable(false);
+                transCell.setStyle("-fx-background-color: #ffffff");
                 list2.add(transCell);
             }
             rows.add(list2);
@@ -400,7 +401,8 @@ public class AFNDController implements Initializable
             {
                 for(String str : alphabet)
                 {
-                    alphController.addCharacter(str.charAt(0));
+                    if(!alphController.alphabetContains(str.charAt(0)))
+                        alphController.addCharacter(str.charAt(0));
                 }
                 this.automaton = new NFA(new ArrayList<>(), alphController, new ArrayList<>(), null);
             }
