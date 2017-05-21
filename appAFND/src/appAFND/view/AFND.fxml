@@ -90,7 +90,7 @@
             </ComboBox>
             <Separator orientation="VERTICAL" />
             <TextField fx:id="wordField" promptText="Word" />
-            <Button fx:id="buttonExecute" alignment="CENTER_RIGHT" mnemonicParsing="false" text="Execute">
+            <Button fx:id="buttonExecute" alignment="CENTER_RIGHT" mnemonicParsing="false" onAction="#readWord" text="Execute">
                <opaqueInsets>
                   <Insets right="10.0" />
                </opaqueInsets>
