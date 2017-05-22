@@ -13,7 +13,6 @@ import javafx.scene.input.MouseEvent;
  */
 public class StateController implements Comparable<StateController>
 {
-
     private State model;
     private StateView view;
 
@@ -21,16 +20,6 @@ public class StateController implements Comparable<StateController>
     {
         this.model = model;
         this.view = view;
-    }
-    
-    public void setStateInitial(Boolean initial)
-    {
-        model.setInitial();
-    }
-    
-    public boolean isStateInitial()
-    {
-        return model.isInitial();
     }
     
     public void setStateLabel(String label)

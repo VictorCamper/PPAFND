@@ -95,7 +95,7 @@ public abstract class Automaton {
                 do
                 {
                     for (StateController active : actives)
-                    {
+                    {                        
                         HashMap<String, ArrayList<StateController>> thing = f.get(active);
                         auxiliar.addAll(thing.get(c));
                     }
@@ -132,6 +132,10 @@ public abstract class Automaton {
     
     public boolean addState(StateController state){
         this.f.put(state, new HashMap<String, ArrayList<StateController>>());
+        for(Character c :this.alphabet.getCharacters()){
+            String s = c.toString();
+            this.f.get(state).put(s,new ArrayList<>());
+        }
         return this.states.add(state);
     }
     
