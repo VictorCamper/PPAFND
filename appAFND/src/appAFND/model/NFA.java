@@ -38,18 +38,20 @@ public class NFA extends Automaton {
 
     @Override
     public boolean addTransition(StateController from, StateController to, String transition) {
-        char[] chars = transition.toCharArray();
-        if (chars.length < 2){
-            HashMap<String,ArrayList<StateController>> trans = f.get(from);
-            if (chars.length == 0){
-                trans.get("\u03BB").add(to);
+        
+            ArrayList<StateController> trans = f.get(from).get(transition);
+            
+            if (trans.isEmpty()){                
+                return trans.add(to);
             }
             else{
-                trans.get(Arrays.toString(chars)).add(to);
+                if (!trans.contains(to)){
+                    return trans.add(to);
+                }                    
             }
-            return true;
-        }
-        return false;        
+            
+            return false;
+              
     }
 
     @Override

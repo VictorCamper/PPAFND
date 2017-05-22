@@ -11,7 +11,6 @@ package appAFND.model;
  */
 public class State
 {
-    public boolean initial;
     public String label;
     public int positionX;
     public int positionY;
@@ -19,19 +18,8 @@ public class State
 
     public State(boolean initial, String label, boolean active)
     {
-        this.initial = initial;
         this.label = label;
         this.active = active;
-    }
-    
-    public boolean isInitial()
-    {
-        return initial;
-    }
-
-    public void setInitial()
-    {
-        this.initial = true;
     }
 
     public String getLabel()
