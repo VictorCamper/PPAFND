@@ -19,7 +19,7 @@ public class Dijkstra
     private boolean [] r;
     private Automaton automaton;
     
-    public Dijkstra(Automaton automaton, StateController initial)
+    public Dijkstra(Automaton automaton)
     {
         this.automaton = automaton;
         this.n = this.automaton.getStates().size();
@@ -30,7 +30,7 @@ public class Dijkstra
         this.r = new boolean[this.n];        
     }
     
-    private void sp()
+    public void sp()
     {
         for(int i = 0; i < this.n; i++)
         {
@@ -74,7 +74,7 @@ public class Dijkstra
                     
             
             int i = 0;
-            while(!adjacencyList.isEmpty())
+            while(adjacencyList.size() >= 0)
             {
                 int weight = this.sp[u];
                 if(!adjacencyList.get(i).empty)
@@ -86,8 +86,8 @@ public class Dijkstra
                     from[this.getIndex(adjacencyList.get(i).stateTo)] = u;
                     path[this.getIndex(adjacencyList.get(i).stateTo)] = adjacencyList.get(i).getChar();
                 }
-                i++;
                 adjacencyList.remove(i);
+                i++;
             }
         }       
     }

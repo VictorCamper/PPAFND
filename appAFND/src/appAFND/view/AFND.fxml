@@ -46,7 +46,7 @@
             </Menu>
             <Menu fx:id="menuOptions" mnemonicParsing="false" text="Options">
                <items>
-                  <MenuItem mnemonicParsing="false" text="Transition's matrix" />
+                  <MenuItem mnemonicParsing="false" onAction="#shortestWord" text="Shortest word" />
                </items>
             </Menu>
             <Menu fx:id="menuHelp" mnemonicParsing="false" text="Help">
@@ -90,7 +90,7 @@
             </ComboBox>
             <Separator orientation="VERTICAL" />
             <TextField fx:id="wordField" promptText="Word" />
-            <Button fx:id="buttonExecute" alignment="CENTER_RIGHT" mnemonicParsing="false" text="Execute">
+            <Button fx:id="buttonExecute" alignment="CENTER_RIGHT" mnemonicParsing="false" onAction="#readWord" text="Execute">
                <opaqueInsets>
                   <Insets right="10.0" />
                </opaqueInsets>

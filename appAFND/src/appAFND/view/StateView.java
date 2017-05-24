@@ -1,5 +1,6 @@
 package appAFND.view;
 
+import appAFND.controller.StateController;
 import com.sun.javafx.tk.FontLoader;
 import com.sun.javafx.tk.Toolkit;
 import javafx.event.ActionEvent;
@@ -26,14 +27,15 @@ public class StateView implements Comparable<StateView>
     private Circle circle;
     private Text text;
     private ContextMenu context = new ContextMenu();
-    private StateView view;
-    
+    private StateController controller;
+    private AFNDController afndcontroller;
 
     public StateView(AFNDController afndcontroller, double x, double y, double radius, String name)
-    {
-        view = this;
+    {        
         MenuItem changeFinal = new MenuItem("Change to final");
         context.getItems().addAll(changeFinal);
+        
+        this.afndcontroller = afndcontroller;
         
         this.circle = new Circle(x, y, radius, Color.DEEPSKYBLUE);
         this.circle.setStroke(Color.DEEPSKYBLUE);
@@ -55,7 +57,7 @@ public class StateView implements Comparable<StateView>
             public void handle(MouseEvent event)
             {
                 if (event.getButton() == MouseButton.PRIMARY){
-                    afndcontroller.stateClicked(view);
+                    afndcontroller.stateClicked(controller);
                 }
                 contextMenu(event);
             }
@@ -67,7 +69,7 @@ public class StateView implements Comparable<StateView>
             public void handle(MouseEvent event)
             {
                 if (event.getButton() == MouseButton.PRIMARY){
-                    afndcontroller.stateClicked(view);
+                    afndcontroller.stateClicked(controller);
                 }
                 contextMenu(event);
             }
@@ -83,11 +85,16 @@ public class StateView implements Comparable<StateView>
         });
         
     }
-    
+
+    public void setController(StateController controller) {
+        this.controller = controller;
+    }
     
     private void isFinalNodo()
     {
         circle.setStroke(Color.web("#006485"));
+        afndcontroller.getAutomaton().getFinalStates().add(controller);
+        afndcontroller.updateTable();
     }
     
     private void contextMenu(MouseEvent event)
