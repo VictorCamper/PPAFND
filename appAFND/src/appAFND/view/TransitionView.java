@@ -62,7 +62,7 @@ public class TransitionView {
         this.curve.setStroke(Color.web("#0169CE"));
         this.curve.setStrokeWidth(2);
         this.curve.setStrokeLineCap(StrokeLineCap.BUTT);
-        this.curve.setFill(Color.TRANSPARENT);
+        this.curve.setFill(null);
         
         this.text = new Text(label);
         FontLoader fontLoader = Toolkit.getToolkit().getFontLoader();
@@ -82,6 +82,10 @@ public class TransitionView {
 
     public Group getTransition() {
         return this.group;
+    }
+    
+    public QuadCurve getCurve(){
+        return this.curve;
     }
 
     private double calcX(Circle c1, Circle c2) {
