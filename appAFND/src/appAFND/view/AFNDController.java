@@ -167,7 +167,7 @@ public class AFNDController implements Initializable
     public void initialize(URL url, ResourceBundle rb) {
         this.dialogInitial();
         
-        this.ffd = FastFeatureDetector.create(25/* threshold for detection */, true /* non-max suppression */, FastFeatureDetector.TYPE_7_12);
+        this.ffd = FastFeatureDetector.create(20/* threshold for detection */, true /* non-max suppression */, FastFeatureDetector.TYPE_7_12);
         this.keyPoints = new KeyPointVector();
         
         this.transitionClickCounter = 0;
@@ -285,11 +285,25 @@ public class AFNDController implements Initializable
                     for (StateController s : this.statesList){
                         //Verify intersection
                         if(s.compareTo(stateController)==0){                        
-                            overlapped = true;
+                            overlapped = true;                            
                         }
                     }
+                    
+                    if(!overlapped){
+                        if (intersectionNewState(stateController))
+                            overlapped = true;
+                    }
+                    
+                    if(overlapped){
+                        Alert overlaped = new Alert(Alert.AlertType.ERROR);
+                        overlaped.setTitle("State error");
+                        overlaped.setHeaderText("You can't make a state here");
+                        overlaped.setContentText("Is not possible to make a state over a existing state or transition");
+                        overlaped.showAndWait();
+                    }
+                    
                     //Draw state
-                    if (!overlapped) {
+                    else {
                         //Create dialog to set the name of the state
 
                         //Draw node
@@ -538,16 +552,14 @@ public class AFNDController implements Initializable
                             transitionStateFrom.fromStateAdd(transitionController);
                             transitionStateTo.toStateAdd(transitionController);
 
-                            for(StateController s : statesList){
+                            /*for(StateController s : statesList){
                                 for(TransitionController t : transitionsList)
                                     if(stateTransitionInstersection(s, t))
                                         System.out.println("hola");
-                            }
+                            }*/
 
                             groupTransitions.getChildren().add(transitionview.getTransition());
                             transitionsList.add(transitionController);
-
-
 
                             this.updateTable();
                         }
@@ -557,7 +569,7 @@ public class AFNDController implements Initializable
                     Alert doubleT = new Alert(Alert.AlertType.ERROR);
                     doubleT.setTitle("Double transition");
                     doubleT.setHeaderText("You can't make the same transition again");
-                    doubleT.setContentText("Try to edit the existing transition.");
+                    doubleT.setContentText("Try to edit the existing transition");
                     doubleT.showAndWait();
                     buttonTransition.fire();
                 }
@@ -787,7 +799,7 @@ public class AFNDController implements Initializable
         //System.out.println(d.getShortestWord());
     }
 
-    private boolean statesInstersection(StateController s, StateController stateController) {
+    /*private boolean statesInstersection(StateController s, StateController stateController) {
         Circle c1 = new Circle();
         c1.setRadius(s.getStateView().getCircle().getRadius());
         c1.setStroke(Color.ALICEBLUE);
@@ -804,9 +816,38 @@ public class AFNDController implements Initializable
 
         Path path = (Path) Shape.intersect(c1, c2);
         return path.getElements().size()>0;
+    }*/
+    
+    private boolean intersectionNewState(StateController s){
+        Circle c1 = new Circle();
+        c1.setRadius(s.getStateView().getCircle().getRadius()+(s.getStateView().getCircle().getStrokeWidth()/2));
+        c1.setCenterX(s.getStateView().getCircle().getCenterX());
+        c1.setCenterY(s.getStateView().getCircle().getCenterY());
+        c1.setStroke(Color.RED);
+        c1.setStrokeWidth(2);
+        c1.setFill(null);
+        
+        
+        Rectangle r = new Rectangle(canvasWidth, canvasHeight, Color.WHITE);
+        Group g1 = new Group(r,c1);
+        
+        long featuresState = getFeatures(g1);
+        long featuresCanvas = getFeatures(group);
+        
+        
+        group.getChildren().add(c1);
+        long featuresTotal = getFeatures(group);
+        group.getChildren().remove(c1);
+        
+        if(featuresTotal != featuresState+featuresCanvas){
+            //System.out.println("inter new state");
+            return true;
+        }
+        //System.out.println("no inter");
+        return false;
     }
     
-    private boolean stateTransitionInstersection(StateController s, TransitionController t) {
+    /*private boolean stateTransitionInstersection(StateController s, TransitionController t) {
         Circle c1 = new Circle();
         c1.setRadius(s.getStateView().getCircle().getRadius()+(s.getStateView().getCircle().getStrokeWidth()/2));
         c1.setCenterX(s.getStateView().getCircle().getCenterX());
@@ -828,7 +869,7 @@ public class AFNDController implements Initializable
         c2.setStrokeWidth(2);
         c2.setFill(null);
         
-        /*
+        
         QuadCurve c3 = new QuadCurve();
         c3.setControlX(tview.getControlX());
         c3.setControlY(tview.getControlY());
@@ -860,7 +901,7 @@ public class AFNDController implements Initializable
         //union function which combines any two shapes
         Path path = (Path) Shape.intersect(line2, c1);
         path.setFill(Color.RED);
-        group.getChildren().add(path);*/
+        group.getChildren().add(path);
         
         //return path.getBoundsInLocal().getHeight()>5 || path.getBoundsInLocal().getWidth()>5;
         
@@ -898,7 +939,7 @@ public class AFNDController implements Initializable
         //si la cantidad de vertices cambia -> interseccion
         
         return false;
-    }
+    }*/
 
     private long getFeatures(Node node) {
        WritableImage image = node.snapshot(new SnapshotParameters(), null);
@@ -916,10 +957,10 @@ public class AFNDController implements Initializable
             ffd.detect(image2, keyPoints);
 
             //Muestra una imagen en una ventana nueva con los vertices detectados 
-            Mat c = new Mat(); drawKeypoints(image2, keyPoints, c, new Scalar(0, 0, 255, 0), DrawMatchesFlags.DEFAULT); 
+           /* Mat c = new Mat(); drawKeypoints(image2, keyPoints, c, new Scalar(0, 0, 255, 0), DrawMatchesFlags.DEFAULT); 
             OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat(); 
             CanvasFrame canvasFrame = new CanvasFrame("hola", 1); canvasFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); 
-            canvasFrame.showImage(converter.convert(c));
+            canvasFrame.showImage(converter.convert(c));*/
 
             //Cantidad de vertices detectados 
              return keyPoints.size();
