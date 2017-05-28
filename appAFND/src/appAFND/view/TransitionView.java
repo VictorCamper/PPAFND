@@ -124,7 +124,7 @@ public class TransitionView {
     public QuadCurve getCurve(){
         return this.curve;
     }
-
+    
     private double calcX(Circle c1, Circle c2) {
         double Ax = c1.getCenterX();
         double Ay = c1.getCenterY();

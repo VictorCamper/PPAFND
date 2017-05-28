@@ -145,8 +145,8 @@ public class AFNDController implements Initializable
     private int canvasHeight;
     
     private int transitionClickCounter;
-    private StateController transitionS1;
-    private StateController transitionS2;
+    private StateController transitionStateFrom;
+    private StateController transitionStateTo;
     
     private FastFeatureDetector ffd;
     private KeyPointVector keyPoints;
@@ -274,7 +274,7 @@ public class AFNDController implements Initializable
                 //draw it in the canvas, add it to the automaton and update table.
                 if (!name.isEmpty()){        
                     //Create state
-                    State state = new State(false, name, false);
+                    State state = new State();
                     StateView stateView = new StateView(this, x, y, this.radius, name);
                     StateController stateController = new StateController(state, stateView);
                     stateView.setController(stateController);
@@ -373,7 +373,7 @@ public class AFNDController implements Initializable
             ObservableList<SpreadsheetCell> list2 = FXCollections.observableArrayList();
 
             StateController state = this.automaton.getStates().get(i);
-            SpreadsheetCell stateCell = SpreadsheetCellType.STRING.createCell(i+1, 0, 1, 1, state.getStateLabel());
+            SpreadsheetCell stateCell = SpreadsheetCellType.STRING.createCell(i+1, 0, 1, 1, state.getStateView().getText().getText());
             stateCell.setEditable(false);
             if(state.equals(automaton.getInitialState()))
                 stateCell.setStyle("-fx-background-color: #9ACD32");
@@ -394,11 +394,11 @@ public class AFNDController implements Initializable
                         if(k != 0)
                         {
                             label += ", ";
-                            label += to.get(k).getStateLabel();
+                            label += to.get(k).getStateView().getText().getText();
                         }
                         else
                         {
-                            label += to.get(k).getStateLabel();
+                            label += to.get(k).getStateView().getText().getText();
                         }
                     }
                 }
@@ -480,50 +480,87 @@ public class AFNDController implements Initializable
             this.transitionClickCounter++;            
             if (this.transitionClickCounter == 1){
                 //State from
-                this.transitionS1 = statecontroller;
+                this.transitionStateFrom = statecontroller;
             }
             else if (this.transitionClickCounter == 2){
                 //State to
-                this.transitionS2 = statecontroller;
+                this.transitionStateTo = statecontroller;
                 //Request label through a window
-                String[] chars = dialogTransition();
-                if (!chars[0].isEmpty()){                   
+                boolean doubleTransition = false;
+                for(TransitionController t : transitionsList){
+                    if(t.getTransitionFrom().equals(transitionStateFrom) && 
+                            t.getTransitionTo().equals(transitionStateTo))
+                        doubleTransition=true;
+                }
+                
+                if(!doubleTransition){
                     
-                    String label = new String();
-                    for (String c : chars){
-                        Character c2 = c.charAt(0);
-                        String c2s = c2.toString();
-                        if (automaton.getAlphabet().alphabetContains(c2)){
-                            if(label.isEmpty()){                                
-                                label = label.concat(c2s);
-                                if(this.automaton instanceof NFA){
-                                    ((NFA)this.automaton).addTransition(transitionS1, transitionS2, c2s);
+                    String[] chars = dialogTransition();
+
+                    buttonTransition.fire();
+
+                    if (!chars[0].isEmpty()){  
+                        //Verify if any character exist in the alphabet
+                        boolean existCharValid = false;
+                        for (String c : chars){
+                            Character c2 = c.charAt(0);
+                            if(automaton.getAlphabet().alphabetContains(c2)){
+                                existCharValid = true;                            
+                            }
+                            if(existCharValid)
+                                break;
+                        }
+                        if(existCharValid){                    
+                            String label = new String();
+                            for (String c : chars){
+                                Character c2 = c.charAt(0);
+                                String c2s = c2.toString();
+                                if (automaton.getAlphabet().alphabetContains(c2)){
+                                    if(label.isEmpty()){                                
+                                        label = label.concat(c2s);
+                                        if(this.automaton instanceof NFA){
+                                            ((NFA)this.automaton).addTransition(transitionStateFrom, transitionStateTo, c2s);
+                                        }
+                                    }
+                                    else
+                                        if (!label.contains(c2s))
+                                            label = label.concat(", ").concat(c2s);
+                                            if(this.automaton instanceof NFA){
+                                                ((NFA)this.automaton).addTransition(transitionStateFrom, transitionStateTo, c2s);
+                                            }
                                 }
                             }
-                            else
-                                if (!label.contains(c2s))
-                                    label = label.concat(", ").concat(c2s);
-                                    if(this.automaton instanceof NFA){
-                                        ((NFA)this.automaton).addTransition(transitionS1, transitionS2, c2s);
-                                    }
+
+                            Transition transitionmodel = new Transition(this.transitionStateFrom, this.transitionStateTo);                    
+                            TransitionView transitionview = new TransitionView(this.transitionStateFrom, this.transitionStateTo, label, this.canvasHeight, this.canvasWidth);
+                            TransitionController transitionController = new TransitionController(transitionmodel, transitionview);
+
+                            transitionStateFrom.fromStateAdd(transitionController);
+                            transitionStateTo.toStateAdd(transitionController);
+
+                            for(StateController s : statesList){
+                                for(TransitionController t : transitionsList)
+                                    if(stateTransitionInstersection(s, t))
+                                        System.out.println("hola");
+                            }
+
+                            groupTransitions.getChildren().add(transitionview.getTransition());
+                            transitionsList.add(transitionController);
+
+
+
+                            this.updateTable();
                         }
-                    }
-                    
-                    Transition transitionmodel = new Transition(this.transitionS1, this.transitionS2);                    
-                    TransitionView transitionview = new TransitionView(this.transitionS1, this.transitionS2, label, this.canvasHeight, this.canvasWidth);
-                    TransitionController transitionController = new TransitionController(transitionmodel, transitionview);
-                    
-                    for(StateController s : statesList){
-                        for(TransitionController t : transitionsList)
-                            if(stateTransitionInstersection(s, t))
-                                System.out.println("hola");
-                    }
-                    
-                    groupTransitions.getChildren().add(transitionview.getTransition());
-                    transitionsList.add(transitionController);
-                    
-                    this.updateTable();
-                }                
+                    }  
+                }
+                else{
+                    Alert doubleT = new Alert(Alert.AlertType.ERROR);
+                    doubleT.setTitle("Double transition");
+                    doubleT.setHeaderText("You can't make the same transition again");
+                    doubleT.setContentText("Try to edit the existing transition.");
+                    doubleT.showAndWait();
+                    buttonTransition.fire();
+                }
             }
         }
     }
@@ -624,14 +661,30 @@ public class AFNDController implements Initializable
         javafx.scene.Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
         loginButton.setDisable(true);
 
+        boolean isTextEmpty = true;
+        boolean isVoidUnselected = true;
+        
         // Do some validation (using the Java 8 lambda syntax).
         characters.textProperty().addListener((observable, oldValue, newValue) -> {
-            loginButton.setDisable(newValue.trim().isEmpty());            
+            loginButton.setDisable(newValue.trim().isEmpty());
+            voidChar.selectedProperty().addListener((observable2, oldValue2, newValue2) -> {
+                loginButton.setDisable(!newValue2 && newValue.trim().isEmpty());          
+            });
         });
         
         voidChar.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            loginButton.setDisable(!newValue);          
+            loginButton.setDisable(!newValue);
+            characters.textProperty().addListener((observable2, oldValue2, newValue2) -> {
+                loginButton.setDisable(newValue2.trim().isEmpty() && !newValue);
+            });
         });
+        
+        isTextEmpty = characters.getCharacters().toString().trim().isEmpty();
+        
+        isVoidUnselected = !(voidChar.isSelected());
+        
+        loginButton.setDisable(isTextEmpty && isVoidUnselected);
+        
 
         dialog.getDialogPane().setContent(grid);
 
