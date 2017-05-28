@@ -103,11 +103,11 @@ public abstract class Automaton {
         char[] characters = word.toCharArray();
         //Mensaje
         Alert accepted = new Alert(Alert.AlertType.INFORMATION);
-        accepted.setTitle("Word Accepted");
-        accepted.setContentText("the word was accepted!");
+        accepted.setTitle("Word accepted");
+        accepted.setContentText("The word was accepted!");
         
         Alert refuse = new Alert(Alert.AlertType.ERROR);
-        refuse.setTitle("not accepted");
+        refuse.setTitle("Not accepted");
         refuse.setContentText("The word was not accepted!");
         
         for (char c : characters){
@@ -176,13 +176,12 @@ public abstract class Automaton {
                     }
                 }
 
-                refuse.showAndWait();
-                return false;
             }
 
             
               
         }
+        refuse.showAndWait();
         return false;
 
     }
