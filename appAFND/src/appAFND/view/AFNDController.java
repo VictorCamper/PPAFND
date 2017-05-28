@@ -284,7 +284,7 @@ public class AFNDController implements Initializable
                     
                     for (StateController s : this.statesList){
                         //Verify intersection
-                        if(statesInstersection(s,stateController)){                        
+                        if(s.compareTo(stateController)==0){                        
                             overlapped = true;
                         }
                     }
@@ -470,7 +470,7 @@ public class AFNDController implements Initializable
     }
     
     //Used for the creation of transitions
-    public void stateClicked(StateController statecontroller) {
+    void stateClicked(StateController statecontroller) {
         //Obtain the states (from and to), obtain the label for the transition,
         //add states to the transition model, create the transition view, 
         //create the transition controller,
@@ -510,7 +510,7 @@ public class AFNDController implements Initializable
                     }
                     
                     Transition transitionmodel = new Transition(this.transitionS1, this.transitionS2);                    
-                    TransitionView transitionview = new TransitionView(this.transitionS1.getStateView().getCircle(), this.transitionS2.getStateView().getCircle(), label, this.canvasHeight, this.canvasWidth);
+                    TransitionView transitionview = new TransitionView(this.transitionS1, this.transitionS2, label, this.canvasHeight, this.canvasWidth);
                     TransitionController transitionController = new TransitionController(transitionmodel, transitionview);
                     
                     for(StateController s : statesList){
@@ -654,19 +654,39 @@ public class AFNDController implements Initializable
     @FXML
     private boolean readWord(ActionEvent event)
     {
-        Dijkstra d = new Dijkstra(automaton);
-        d.sp();
-        String sp = d.getShortestWord();
-        if(!(sp.isEmpty()))
+        String sp = null;
+        try{
+            Dijkstra d = new Dijkstra(automaton);
+            d.sp();
+            sp = d.getShortestWord();
+        }
+        catch(Exception e){
+        }
+        if(automaton.getInitialState()==null){
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Initial state error");
+            result.setHeaderText("There is no initial state");
+            result.showAndWait();
+            return false;
+        }
+        
+        else if(automaton.getFinalStates().contains(automaton.getInitialState())){
+            Alert result = new Alert(Alert.AlertType.INFORMATION);
+            result.setTitle("Word accepted");
+            result.setHeaderText("The word was accepted!");
+            result.showAndWait();
+            return true;
+        }
+        else if(!(sp.isEmpty()))
         {
             return this.automaton.readWord(wordField.getText());
         }
         else
         {
-            Alert shortest = new Alert(Alert.AlertType.ERROR);
-            shortest.setTitle("Not exist a viable path");
-            shortest.setHeaderText("There is no viable path");
-            shortest.showAndWait();
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Viable path error");
+            result.setHeaderText("There is no viable path");
+            result.showAndWait();
             return false;
         }
         
@@ -674,21 +694,39 @@ public class AFNDController implements Initializable
 
     @FXML
     private void shortestWord(ActionEvent event) {
-        Dijkstra d = new Dijkstra(automaton);
-        d.sp();
-        String sp = d.getShortestWord();
-        if(!(sp.isEmpty()))
+        String sp = null;
+        try{
+            Dijkstra d = new Dijkstra(automaton);
+            d.sp();
+            sp = d.getShortestWord();
+        }
+        catch(Exception e){
+        }
+        if(automaton.getInitialState()==null){
+            Alert shortest = new Alert(Alert.AlertType.ERROR);
+            shortest.setTitle("Initial state error");
+            shortest.setHeaderText("There is no initial state");
+            shortest.showAndWait();
+        }
+        else if(automaton.getFinalStates().contains(automaton.getInitialState())){
+            Alert shortest = new Alert(Alert.AlertType.INFORMATION);
+            shortest.setTitle("Shotest path");
+            shortest.setHeaderText("This automaton accepts any word");
+            shortest.setContentText("The shortest path is: \"\" ");
+            shortest.showAndWait();
+        }
+        else if(!(sp.isEmpty()))
         {
             Alert shortest = new Alert(Alert.AlertType.INFORMATION);
-            shortest.setTitle("The shotest path");
-            shortest.setHeaderText("The shortest path was found ");
+            shortest.setTitle("Shotest path");
+            shortest.setHeaderText("The shortest path is:");
             shortest.setContentText(sp);
             shortest.showAndWait();
         }
         else
         {
             Alert shortest = new Alert(Alert.AlertType.ERROR);
-            shortest.setTitle("Not exist a viable path");
+            shortest.setTitle("Viable path error");
             shortest.setHeaderText("There is no viable path");
             shortest.showAndWait();
         }       

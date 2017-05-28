@@ -104,83 +104,82 @@ public abstract class Automaton {
         //Mensaje
         Alert accepted = new Alert(Alert.AlertType.INFORMATION);
         accepted.setTitle("Word accepted");
-        accepted.setContentText("The word was accepted!");
+        accepted.setHeaderText("The word was accepted!");
         
         Alert refuse = new Alert(Alert.AlertType.ERROR);
         refuse.setTitle("Not accepted");
-        refuse.setContentText("The word was not accepted!");
+        refuse.setHeaderText("The word was not accepted!");
         
         for (char c : characters){
             if (!alphabet.alphabetContains(c)){
                 // Alerta por si la letra no esta contenida en el alfabeto.
                 // Rellenar la alerta.
                 Alert emptyAlert = new Alert(Alert.AlertType.ERROR);
-                emptyAlert.setHeaderText("ERROR");
-                emptyAlert.setContentText("Some of the letters are not contained in the alphabet");
-                
-                valid = false; 
+                emptyAlert.setTitle("Word error");
+                emptyAlert.setHeaderText("Some of the characters are not contained in the alphabet");
+                emptyAlert.showAndWait();
+                //valid = false; 
+                return false;
                 //Error, the word have a character that isn't in the alphabet of the automaton.  
             }            
         }
         
-        if (valid)
-        {
-            ArrayList<StateController> activos = new ArrayList();
-            ArrayList<StateController> nuevos = new ArrayList();
+        ArrayList<StateController> activos = new ArrayList();
+        ArrayList<StateController> nuevos = new ArrayList();
 
-            activos.add(initialState);
-            nuevos.add(initialState);
+        activos.add(initialState);
+        nuevos.add(initialState);
 
-            
-            for(int i = 0; i < characters.length ; i++){
-                //Revisar si los nuevos tienen transiciones vacias
-                //Se agregan las transiciones vacias a nuevoaux
-                while(!(nuevos.isEmpty()))
-                {
-                    ArrayList<StateController> nuevosaux = new ArrayList();
-                    for(StateController nuevo : nuevos){
-                        if(!(f.get(nuevo).get("\u03BB").isEmpty())){
-                            nuevosaux.addAll(f.get(nuevo).get("\u03BB"));
-                        }
+
+        for(int i = 0; i < characters.length ; i++){
+            //Revisar si los nuevos tienen transiciones vacias
+            //Se agregan las transiciones vacias a nuevoaux
+            while(!(nuevos.isEmpty()))
+            {
+                ArrayList<StateController> nuevosaux = new ArrayList();
+                for(StateController nuevo : nuevos){
+                    if(!(f.get(nuevo).get("\u03BB").isEmpty())){
+                        nuevosaux.addAll(f.get(nuevo).get("\u03BB"));
                     }
-                    //La lista de nuevos = nuevosaux
-                    nuevos.clear();
-                    nuevos.addAll(nuevosaux);
-
-                    //Agregar a los activos los nuevos
-                    activos.addAll(nuevos);
-
                 }
-                
-                //Leer caracter
-                //Agregar a los activos
-                ArrayList<StateController> activosaux = new ArrayList();
-                for(StateController activo : activos){
-                    activosaux.addAll(f.get(activo).get(((Character)characters[i]).toString()));
-                }
-                activos.clear();
-                activos.addAll(activosaux);
+                //La lista de nuevos = nuevosaux
                 nuevos.clear();
-                nuevos.addAll(activos);
+                nuevos.addAll(nuevosaux);
 
-                if(activos.isEmpty()){
-                   refuse.showAndWait();
-                   return false;
-                }
-
-                for(StateController activo : activos){
-                    //System.out.println("activo:"+activo.getStateLabel());
-                    if (finalStates.contains(activo)){
-                        accepted.showAndWait();
-                        return true;
-                    }
-                }
+                //Agregar a los activos los nuevos
+                activos.addAll(nuevos);
 
             }
 
+            //Leer caracter
+            //Agregar a los activos
+            ArrayList<StateController> activosaux = new ArrayList();
+            for(StateController activo : activos){
+                activosaux.addAll(f.get(activo).get(((Character)characters[i]).toString()));
+            }
+            activos.clear();
+            activos.addAll(activosaux);
+            nuevos.clear();
+            nuevos.addAll(activos);
+
+            if(activos.isEmpty()){
+               refuse.showAndWait();
+               return false;
+            }
+
+            for(StateController activo : activos){
+                //System.out.println("activo:"+activo.getStateLabel());
+                if (finalStates.contains(activo)){
+                    accepted.showAndWait();
+                    return true;
+                }
+            }
+
+        }
+
             
               
-        }
+        
         refuse.showAndWait();
         return false;
 
