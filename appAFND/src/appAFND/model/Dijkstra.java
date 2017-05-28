@@ -48,46 +48,51 @@ public class Dijkstra
         while(!this.completed())
         {
             int u = this.argMin();
-            this.r[u] = true;
-            HashMap<String,ArrayList<StateController>> adl = this.automaton.f.get(this.automaton.getStates().get(u));
             ArrayList<Element> adjacencyList = new ArrayList<>();
-            
-            for(Character c : this.automaton.getAlphabet().getCharacters())
+
+            if (u < this.automaton.states.size())
             {
-                if(c=='\u03BB')
+                this.r[u] = true;
+                HashMap<String,ArrayList<StateController>> adl = this.automaton.f.get(this.automaton.getStates().get(u));
+
+                for(Character c : this.automaton.getAlphabet().getCharacters())
                 {
-                    for (StateController state : adl.get(c.toString()))
+                    if(c=='\u03BB')
                     {
-                        Element element = new Element(state,true, '\u03BB');
-                        adjacencyList.add(element);
+                        for (StateController state : adl.get(c.toString()))
+                        {
+                            Element element = new Element(state,true, '\u03BB');
+                            adjacencyList.add(element);
+                        }
                     }
-                }
-                else 
-                {
-                    for (StateController state : adl.get(c.toString()))
+                    else 
                     {
-                        Element element = new Element(state, false, c);
-                        adjacencyList.add(element);
+                        for (StateController state : adl.get(c.toString()))
+                        {
+                            Element element = new Element(state, false, c);
+                            adjacencyList.add(element);
+                        }
                     }
                 }
             }
-                    
-            
-            int i = 0;
-            while(adjacencyList.size() >= 0)
+                                
+            //int i = 0;
+            for(Element element : adjacencyList)
+            //while(adjacencyList.size() >= 0)
             {
                 int weight = this.sp[u];
-                if(!adjacencyList.get(i).empty)
+                if(!element.empty)
                     weight++;
-                
-                if(weight < sp[this.getIndex(adjacencyList.get(i).stateTo)])
+                if(weight < sp[this.getIndex(element.stateTo)])
                 {
-                    sp[this.getIndex(adjacencyList.get(i).stateTo)] = weight;
-                    from[this.getIndex(adjacencyList.get(i).stateTo)] = u;
-                    path[this.getIndex(adjacencyList.get(i).stateTo)] = adjacencyList.get(i).getChar();
+                    //System.out.println("actual weight: " + sp[this.getIndex(element.stateTo)]);
+                    sp[this.getIndex(element.stateTo)] = weight;
+                    //System.out.println("new weight: " + sp[this.getIndex(element.stateTo)]);
+                    from[this.getIndex(element.stateTo)] = u;
+                    path[this.getIndex(element.stateTo)] = element.getChar();
                 }
-                adjacencyList.remove(i);
-                i++;
+                //adjacencyList.remove(i);
+//                i++;
             }
         }       
     }
@@ -96,7 +101,9 @@ public class Dijkstra
     {
         ArrayList<StateController> finals = this.automaton.getFinalStates();
         HashMap<StateController, String> shortest = new HashMap<>();
-
+        
+        ArrayList<String>paths = new ArrayList<>(/*shortest.values()*/);
+        
         for(StateController state : finals)
         {
             String path = "";
@@ -109,10 +116,11 @@ public class Dijkstra
             }
             
             path = new StringBuilder(path).reverse().toString();
-            shortest.put(state, path);            
+            //shortest.put(state, path);            
+            paths.add(path);
         }
         
-        ArrayList<String>paths = new ArrayList<>(shortest.values());
+        
         
         String theShortestPath = "";
         int length = Integer.MAX_VALUE;
@@ -131,29 +139,18 @@ public class Dijkstra
                 length = path.length();
             }
         }
-        
+        //System.out.println("sp :" + theShortestPath);
         return theShortestPath;
     }
     
     public String removeSpaces(String str) // Actually, removes the lambda character
     {
         String ourString="";
-        for (int i=0; i<str.length()-1 ; i++){
-            if(i==0){
-                ourString = ""+str.charAt(i);
-            }else{
-                if((str.charAt(i-1) != str.charAt(i))){
-                    ourString = ourString +str.charAt(i);
-                }
-                else if(str.charAt(i)=='\u03BB')
-                {
-                    continue;
-                }
-                else
-                {
-                    ourString = ourString +str.charAt(i);
-                }
-            }           
+        for (int i=0; i<str.length() ; i++){
+            if(str.charAt(i) != '\u03BB')
+            {
+                ourString += str.charAt(i);
+            }    
         }
         return ourString;
     }
@@ -163,7 +160,8 @@ public class Dijkstra
         for (int i = 0; i < this.n; i++)
             if(this.automaton.getStates().get(i).equals(state))
                 return i;
-        throw new ArrayIndexOutOfBoundsException("State isn't in States (?)");
+        return -1;
+        //throw new ArrayIndexOutOfBoundsException("State isn't in States (?)");
     }
     
     private boolean completed()

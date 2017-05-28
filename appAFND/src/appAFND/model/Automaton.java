@@ -9,7 +9,6 @@ import appAFND.controller.AlphabetController;
 import appAFND.controller.StateController;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import javafx.scene.control.Alert;
 
 
@@ -37,90 +36,6 @@ public abstract class Automaton {
     abstract boolean addTransition(StateController from, StateController to, String transition);
     
     abstract boolean removeTransition(StateController from, StateController to, String transition);
-    
-    public boolean readWord(String word){
-        boolean valid = true;
-        char[] characters = word.toCharArray();
-        
-        for (char c : characters){
-            if (!alphabet.alphabetContains(c)){
-                // Alerta por si la letra no esta contenida en el alfabeto.
-                // Rellenar la alerta.
-                Alert emptyAlert = new Alert(Alert.AlertType.ERROR);
-                emptyAlert.setHeaderText("ERROR");
-                emptyAlert.setContentText("Some of the letters are not contained in the alphabet");
-                
-                valid = false; 
-                //Error, the word have a character that isn't in the alphabet of the automaton.  
-            }            
-        }
-        
-        if (valid){
-            /*
-            ArrayList<StateController> statesVoid = f.get(initialState).get("");
-            ArrayList<StateController> statesChar = f.get(initialState).get("");*/
-            
-            // HACER FUNCIONES PARA ESTA WEA!
-            List<StateController> actives = new ArrayList<>();
-            List<StateController> auxiliar = new ArrayList<>();
-            for(char c : characters)
-            {
-                //Lista que llevara los nodos recorridos.
-                
-                //Se agrega el nodo inicial
-                actives.add(initialState);
-                boolean continuar = false;
-                // ESTO PARA EL LAMBDA 
-                do
-                {
-                    for (StateController active : actives)
-                    {
-                        HashMap<String, ArrayList<StateController>> thing = f.get(active);
-                        auxiliar.addAll(thing.get("\u03bb"));
-                        if(!auxiliar.isEmpty())
-                        {
-                            continuar = true;
-                        }
-                        else
-                        {
-                            continuar = false;
-                        }
-                    }
-                    actives.addAll(auxiliar);
-                    //Limpio el arraylist
-                    auxiliar.clear();
-                }while(continuar);
-                
-                // PARA EL CARACTER
-                do
-                {
-                    for (StateController active : actives)
-                    {                        
-                        HashMap<String, ArrayList<StateController>> thing = f.get(active);
-                        auxiliar.addAll(thing.get(c));
-                    }
-                    //Se limpia el arraylist actives
-                    actives.clear();
-                    actives.addAll(auxiliar);
-                }while(continuar);
-            }
-            //AL TERMINAR LA LISTA DE CARACTERES SE COMPRUEBA SI LLEGO A UN NODO FINAL
-            for(StateController active : actives)
-            {
-                if(active.equals(finalStates))
-                {
-                    Alert accepted = new Alert(Alert.AlertType.INFORMATION);
-                    accepted.setTitle("Word Accepted");
-                    accepted.setContentText("the word was accepted!");
-                    break;
-                }
-            }
-            return true;
-        }
-        
-        return false;
-        
-    }
     
     public ArrayList<StateController> getStates() {
         return states;
@@ -182,4 +97,93 @@ public abstract class Automaton {
     public void setFinalStates(ArrayList<StateController> finalStates) {
         this.finalStates = finalStates;
     }
+    
+    public boolean readWord(String word){
+        boolean valid = true;
+        char[] characters = word.toCharArray();
+        //Mensaje
+        Alert accepted = new Alert(Alert.AlertType.INFORMATION);
+        accepted.setTitle("Word accepted");
+        accepted.setContentText("The word was accepted!");
+        
+        Alert refuse = new Alert(Alert.AlertType.ERROR);
+        refuse.setTitle("Not accepted");
+        refuse.setContentText("The word was not accepted!");
+        
+        for (char c : characters){
+            if (!alphabet.alphabetContains(c)){
+                // Alerta por si la letra no esta contenida en el alfabeto.
+                // Rellenar la alerta.
+                Alert emptyAlert = new Alert(Alert.AlertType.ERROR);
+                emptyAlert.setHeaderText("ERROR");
+                emptyAlert.setContentText("Some of the letters are not contained in the alphabet");
+                
+                valid = false; 
+                //Error, the word have a character that isn't in the alphabet of the automaton.  
+            }            
+        }
+        
+        if (valid)
+        {
+            ArrayList<StateController> activos = new ArrayList();
+            ArrayList<StateController> nuevos = new ArrayList();
+
+            activos.add(initialState);
+            nuevos.add(initialState);
+
+            
+            for(int i = 0; i < characters.length ; i++){
+                //Revisar si los nuevos tienen transiciones vacias
+                //Se agregan las transiciones vacias a nuevoaux
+                while(!(nuevos.isEmpty()))
+                {
+                    ArrayList<StateController> nuevosaux = new ArrayList();
+                    for(StateController nuevo : nuevos){
+                        if(!(f.get(nuevo).get("\u03BB").isEmpty())){
+                            nuevosaux.addAll(f.get(nuevo).get("\u03BB"));
+                        }
+                    }
+                    //La lista de nuevos = nuevosaux
+                    nuevos.clear();
+                    nuevos.addAll(nuevosaux);
+
+                    //Agregar a los activos los nuevos
+                    activos.addAll(nuevos);
+
+                }
+                
+                //Leer caracter
+                //Agregar a los activos
+                ArrayList<StateController> activosaux = new ArrayList();
+                for(StateController activo : activos){
+                    activosaux.addAll(f.get(activo).get(((Character)characters[i]).toString()));
+                }
+                activos.clear();
+                activos.addAll(activosaux);
+                nuevos.clear();
+                nuevos.addAll(activos);
+
+                if(activos.isEmpty()){
+                   refuse.showAndWait();
+                   return false;
+                }
+
+                for(StateController activo : activos){
+                    //System.out.println("activo:"+activo.getStateLabel());
+                    if (finalStates.contains(activo)){
+                        accepted.showAndWait();
+                        return true;
+                    }
+                }
+
+            }
+
+            
+              
+        }
+        refuse.showAndWait();
+        return false;
+
+    }
+    
 }
