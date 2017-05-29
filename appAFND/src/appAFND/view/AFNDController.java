@@ -537,9 +537,10 @@ public class AFNDController implements Initializable
                             }
 
                             Transition transitionmodel = new Transition(this.transitionStateFrom, this.transitionStateTo);                    
-                            TransitionView transitionview = new TransitionView(this.transitionStateFrom, this.transitionStateTo, label, this.canvasHeight, this.canvasWidth);
+                            TransitionView transitionview = new TransitionView(this.transitionStateFrom, this.transitionStateTo, label, this.canvasHeight, this.canvasWidth, this);
                             TransitionController transitionController = new TransitionController(transitionmodel, transitionview);
-
+                            transitionview.setTransitionController(transitionController);
+                            
                             transitionStateFrom.fromStateAdd(transitionController);
                             transitionStateTo.toStateAdd(transitionController);
                             
@@ -942,9 +943,9 @@ public class AFNDController implements Initializable
         group.getChildren().remove(circleState);
         
         if(featuresTotal != featuresState+featuresCanvas){
-            System.out.println("Total: "+featuresTotal);
+            /*System.out.println("Total: "+featuresTotal);
             System.out.println("State: "+featuresState);
-            System.out.println("Canvas: "+featuresCanvas);
+            System.out.println("Canvas: "+featuresCanvas);*/
             return true;
         }
         //System.out.println("no inter");
@@ -1019,8 +1020,84 @@ public class AFNDController implements Initializable
         return false;
     }
     
-    boolean intersectionMoveTransition(TransitionController t){
+    boolean intersectionMoveTransition(TransitionView tview){
+        //QuadCurve tview = t.getTransitionView().getCurve();
+        //MoveTo move = new MoveTo(tview.getStartX(), tview.getStartY());
+        QuadCurve curveTransition = new QuadCurve();        
+        curveTransition.setControlX(tview.getCurve().getControlX());
+        curveTransition.setControlY(tview.getCurve().getControlY());
+        curveTransition.setStartX(tview.getCurve().getStartX());
+        curveTransition.setStartY(tview.getCurve().getStartY());
+        curveTransition.setEndX(tview.getCurve().getEndX());
+        curveTransition.setEndY(tview.getCurve().getEndY());
+        curveTransition.setStroke(Color.ORANGE);
+        curveTransition.setStrokeWidth(2);
+        curveTransition.setFill(null);
         
+        StateController from = tview.getFrom();
+        StateController to = tview.getTo();
+        
+        Circle circleFrom = new Circle();
+        circleFrom.setRadius(from.getStateView().getCircle().getRadius());
+        circleFrom.setCenterX(from.getStateView().getCircle().getCenterX());
+        circleFrom.setCenterY(from.getStateView().getCircle().getCenterY());
+        circleFrom.setStroke(from.getStateView().getCircle().getStroke());
+        circleFrom.setStrokeWidth(from.getStateView().getCircle().getStrokeWidth());
+        circleFrom.setFill(from.getStateView().getCircle().getFill());
+        
+        Text textFrom = new Text(from.getStateView().getText().getText());
+        textFrom.setX(from.getStateView().getText().getX());
+        textFrom.setY(from.getStateView().getText().getY());
+        
+        Circle circleTo = new Circle();
+        circleTo.setRadius(to.getStateView().getCircle().getRadius());
+        circleTo.setCenterX(to.getStateView().getCircle().getCenterX());
+        circleTo.setCenterY(to.getStateView().getCircle().getCenterY());
+        circleTo.setStroke(to.getStateView().getCircle().getStroke());
+        circleTo.setStrokeWidth(to.getStateView().getCircle().getStrokeWidth());
+        circleTo.setFill(to.getStateView().getCircle().getFill());
+        
+        Text textTo = new Text(to.getStateView().getText().getText());
+        textTo.setX(to.getStateView().getText().getX());
+        textTo.setY(to.getStateView().getText().getY());
+        
+        
+        Rectangle r = new Rectangle(canvasWidth, canvasHeight, Color.WHITE);
+        Group g1 = new Group(r,circleFrom,circleTo,textFrom,textTo,curveTransition);
+         
+        
+        //todo menos transicion
+        group.getChildren().remove(tview.getTransition());
+        long featuresCanvas = getFeatures(group);
+        
+        //transicion con circulos - circulos
+        long featuresTransition = getFeatures(g1);
+        g1.getChildren().remove(curveTransition);
+        featuresTransition -= getFeatures(g1);
+        
+        //todo con curva transicion
+        group.getChildren().add(curveTransition);
+        long featuresTotal = getFeatures(group);
+        group.getChildren().remove(curveTransition);
+        group.getChildren().add(tview.getTransition());
+        
+        
+        if(featuresTotal != (featuresTransition)+featuresCanvas){
+            //System.out.println("inter new state");
+            /*System.out.println("Total: "+ featuresTotal);
+            System.out.println("Transition: " + (featuresTransition-featuresStates));
+            System.out.println("Canvas: " + featuresCanvas);*/
+            if(transitionsList.contains(tview.getTransitionController()))
+                transitionsList.remove(tview.getTransitionController());
+            if(!transitionsRedList.contains(tview.getTransitionController()))
+                transitionsRedList.add(tview.getTransitionController());
+            return true;
+        }
+        //System.out.println("no inter");
+        if(!transitionsList.contains(tview.getTransitionController()))
+            transitionsList.add(tview.getTransitionController());
+        if(transitionsRedList.contains(tview.getTransitionController()))
+            transitionsRedList.remove(tview.getTransitionController());
         return false;
     }
     

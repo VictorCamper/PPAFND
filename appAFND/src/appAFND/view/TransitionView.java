@@ -6,6 +6,7 @@
 package appAFND.view;
 
 import appAFND.controller.StateController;
+import appAFND.controller.TransitionController;
 import com.sun.javafx.tk.FontLoader;
 import com.sun.javafx.tk.Toolkit;
 import javafx.beans.property.DoubleProperty;
@@ -39,13 +40,16 @@ public class TransitionView {
     private Group group = new Group();
     private double canvasHeight, canvasWidth;
     private StateController from, to;
+    private AFNDController afndController;
+    private TransitionController tController;
     
-    public TransitionView(StateController from, StateController to, String label, double canvasHeight, double canvasWidth){
+    public TransitionView(StateController from, StateController to, String label, double canvasHeight, double canvasWidth, AFNDController afndController){
         this.curve = new QuadCurve();
         this.canvasHeight = canvasHeight;
         this.canvasWidth = canvasWidth;
         this.from = from;
         this.to = to;
+        this.afndController = afndController;
         
         Circle c1 = this.from.getStateView().getCircle();
         Circle c2 = this.to.getStateView().getCircle();
@@ -108,9 +112,9 @@ public class TransitionView {
         
               
         
-        this.center = new AnchorCenter(Color.GOLD, curve, text, textWidth);
-        this.start = new Anchor(Color.TRANSPARENT, curve.startXProperty(), curve.startYProperty(), curve, center, text, textWidth, true, from);
-        this.end = new Anchor(Color.TRANSPARENT, curve.endXProperty(), curve.endYProperty(), curve, center, text, textWidth, false, to);
+        this.center = new AnchorCenter(Color.GOLD, curve, text, textWidth, this);
+        this.start = new Anchor(Color.TRANSPARENT, curve.startXProperty(), curve.startYProperty(), curve, center, text, textWidth, true, from, this);
+        this.end = new Anchor(Color.TRANSPARENT, curve.endXProperty(), curve.endYProperty(), curve, center, text, textWidth, false, to, this);
         double[] arrowShape = new double[]{0, 0, 5, 10, -5, 10};
         this.arrow = new Arrow(curve, 1f, arrowShape);
         
@@ -123,6 +127,21 @@ public class TransitionView {
     
     public QuadCurve getCurve(){
         return this.curve;
+    }
+    
+    public StateController getFrom(){
+        return this.from;
+    }
+    
+    public StateController getTo(){
+        return this.to;
+    }
+    
+    public TransitionController getTransitionController(){
+        return this.tController;
+    }
+    public void setTransitionController(TransitionController t){
+        this.tController = t;
     }
     
     private double calcX(double Ax, double Ay, double Bx, double By, double radius, double strokeWidth) {
@@ -247,7 +266,7 @@ public class TransitionView {
 
     class Anchor extends Circle {
 
-        Anchor(Color color, DoubleProperty x, DoubleProperty y, QuadCurve curve, AnchorCenter center, Text text, float labelWidth, boolean isStart, StateController state) {
+        Anchor(Color color, DoubleProperty x, DoubleProperty y, QuadCurve curve, AnchorCenter center, Text text, float labelWidth, boolean isStart, StateController state, TransitionView t) {
             super(x.get(), y.get(), 10);
 
             setFill(color.deriveColor(1, 1, 1, 0.5));
@@ -257,11 +276,11 @@ public class TransitionView {
 
             x.bind(centerXProperty());
             y.bind(centerYProperty());
-            enableDrag(curve, center, text, labelWidth, isStart, state);
+            enableDrag(curve, center, text, labelWidth, isStart, state, t);
         }
 
         // make a node movable by dragging it around with the mouse.
-        private void enableDrag(QuadCurve curve, AnchorCenter center, Text text, float labelWidth, boolean isStart, StateController state) {
+        private void enableDrag(QuadCurve curve, AnchorCenter center, Text text, float labelWidth, boolean isStart, StateController state, TransitionView t) {
             final Delta dragDelta = new Delta();
             setOnMousePressed(new EventHandler<MouseEvent>() {
                 @Override
@@ -276,6 +295,10 @@ public class TransitionView {
                 @Override
                 public void handle(MouseEvent mouseEvent) {
                     getScene().setCursor(Cursor.OPEN_HAND);
+                    if(afndController.intersectionMoveTransition(t))
+                        t.setRed();                    
+                    else
+                        t.setBlue();
                 }
             });
             setOnMouseDragged(new EventHandler<MouseEvent>() {
@@ -344,7 +367,7 @@ public class TransitionView {
 
     class AnchorCenter extends Circle {
 
-        AnchorCenter(Color color, QuadCurve curve, Text text, float labelWidth) {
+        AnchorCenter(Color color, QuadCurve curve, Text text, float labelWidth, TransitionView t) {
             DoubleProperty x = curve.controlXProperty();
             DoubleProperty y = curve.controlYProperty();
             DoubleProperty sx = curve.startXProperty();
@@ -360,11 +383,11 @@ public class TransitionView {
             setStrokeWidth(1);
             setStrokeType(StrokeType.OUTSIDE);
 
-            enableDrag(curve, text, labelWidth);
+            enableDrag(curve, text, labelWidth, t);
         }
 
         // make a node movable by dragging it around with the mouse.
-        private void enableDrag(QuadCurve curve, Text text, float labelWidth) {
+        private void enableDrag(QuadCurve curve, Text text, float labelWidth, TransitionView t) {
             final Delta dragDelta = new Delta();
             setOnMousePressed(new EventHandler<MouseEvent>() {
                 @Override
@@ -379,6 +402,10 @@ public class TransitionView {
                 @Override
                 public void handle(MouseEvent mouseEvent) {
                     getScene().setCursor(Cursor.OPEN_HAND);
+                    if(afndController.intersectionMoveTransition(t))
+                        t.setRed();                    
+                    else
+                        t.setBlue();
                 }
             });
             setOnMouseDragged(new EventHandler<MouseEvent>() {
