@@ -110,7 +110,7 @@ public class StateView implements Comparable<StateView>
         }
     }
 
-    public void drawNode(Group g)
+    public void drawState(Group g)
     {
         g.getChildren().add(this.circle);
         g.getChildren().add(this.text);

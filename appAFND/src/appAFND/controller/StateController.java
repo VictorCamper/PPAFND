@@ -61,7 +61,7 @@ public class StateController implements Comparable<StateController>
     
     public void drawNode(Group g)
     {
-        this.view.drawNode(g);
+        this.view.drawState(g);
     }
     
     public StateView getStateView(){

@@ -29,6 +29,14 @@ public class State
     public TransitionController fromStateGet(int index) {
         return fromState.get(index);
     }
+    
+    public boolean fromStateEmpty() {
+        return fromState.isEmpty();
+    }
+    
+    public boolean toStateEmpty() {
+        return toState.isEmpty();
+    }
 
     public boolean fromStateAdd(TransitionController e) {
         return fromState.add(e);
