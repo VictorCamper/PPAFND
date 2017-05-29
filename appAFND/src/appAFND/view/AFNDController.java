@@ -760,8 +760,9 @@ public class AFNDController implements Initializable
     @FXML
     private void shortestWord(ActionEvent event) {
         String sp = null;
+        Dijkstra d = new Dijkstra(automaton);
         try{
-            Dijkstra d = new Dijkstra(automaton);
+            
             d.sp();
             sp = d.getShortestWord();
         }
@@ -773,14 +774,29 @@ public class AFNDController implements Initializable
             shortest.setHeaderText("There is no initial state");
             shortest.showAndWait();
         }
-        else if(automaton.getFinalStates().contains(automaton.getInitialState())){
+        /*else if(automaton.getFinalStates().contains(automaton.getInitialState())){
+            Alert shortest = new Alert(Alert.AlertType.INFORMATION);
+            shortest.setTitle("Shotest path");
+            shortest.setHeaderText("This automaton accepts any word");
+            shortest.setContentText("The shortest path is: \"\" ");
+            shortest.showAndWait();
+        }*/
+        else if(!d.isExistPath())
+        {
+            Alert shortest = new Alert(Alert.AlertType.ERROR);
+            shortest.setTitle("Viable path error");
+            shortest.setHeaderText("There is no viable path");
+            shortest.showAndWait();
+        }   
+        else if (sp.length() == 0)
+        {
             Alert shortest = new Alert(Alert.AlertType.INFORMATION);
             shortest.setTitle("Shotest path");
             shortest.setHeaderText("This automaton accepts any word");
             shortest.setContentText("The shortest path is: \"\" ");
             shortest.showAndWait();
         }
-        else if(!(sp.isEmpty()))
+        else
         {
             Alert shortest = new Alert(Alert.AlertType.INFORMATION);
             shortest.setTitle("Shotest path");
@@ -788,14 +804,6 @@ public class AFNDController implements Initializable
             shortest.setContentText(sp);
             shortest.showAndWait();
         }
-        else
-        {
-            Alert shortest = new Alert(Alert.AlertType.ERROR);
-            shortest.setTitle("Viable path error");
-            shortest.setHeaderText("There is no viable path");
-            shortest.showAndWait();
-        }       
-            
         //System.out.println(d.getShortestWord());
     }
 
