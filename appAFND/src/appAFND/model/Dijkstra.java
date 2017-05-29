@@ -19,6 +19,8 @@ public class Dijkstra
     private boolean [] r;
     private Automaton automaton;
     
+    private boolean existPath;
+    
     public Dijkstra(Automaton automaton)
     {
         this.automaton = automaton;
@@ -27,7 +29,9 @@ public class Dijkstra
         this.sp = new int[this.n];
         this.from = new int[this.n];
         this.path = new char[this.n];
-        this.r = new boolean[this.n];        
+        this.r = new boolean[this.n];      
+        
+        this.existPath = false;
     }
     
     public void sp()
@@ -120,7 +124,8 @@ public class Dijkstra
             paths.add(path);
         }
         
-        
+        if(paths.size() != 0)
+            this.existPath = true;
         
         String theShortestPath = "";
         int length = Integer.MAX_VALUE;
@@ -187,6 +192,18 @@ public class Dijkstra
         }
         return index;
     }
+
+    public boolean isExistPath()
+    {
+        return existPath;
+    }
+
+    public void setExistPath(boolean existPath)
+    {
+        this.existPath = existPath;
+    }
+    
+    
     
     class Element
     {
