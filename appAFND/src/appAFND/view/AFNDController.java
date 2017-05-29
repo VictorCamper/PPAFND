@@ -551,6 +551,10 @@ public class AFNDController implements Initializable
 
                             transitionStateFrom.fromStateAdd(transitionController);
                             transitionStateTo.toStateAdd(transitionController);
+                            
+                            if(intersectionNewTransition(transitionController)){
+                                transitionController.getTransitionView().getCurve().setStroke(Color.RED);
+                            }
 
                             /*for(StateController s : statesList){
                                 for(TransitionController t : transitionsList)
@@ -567,7 +571,7 @@ public class AFNDController implements Initializable
                 }
                 else{
                     Alert doubleT = new Alert(Alert.AlertType.ERROR);
-                    doubleT.setTitle("Double transition");
+                    doubleT.setTitle("Double transition error");
                     doubleT.setHeaderText("You can't make the same transition again");
                     doubleT.setContentText("Try to edit the existing transition");
                     doubleT.showAndWait();
@@ -819,28 +823,65 @@ public class AFNDController implements Initializable
     }*/
     
     private boolean intersectionNewState(StateController s){
-        Circle c1 = new Circle();
-        c1.setRadius(s.getStateView().getCircle().getRadius()+(s.getStateView().getCircle().getStrokeWidth()/2));
-        c1.setCenterX(s.getStateView().getCircle().getCenterX());
-        c1.setCenterY(s.getStateView().getCircle().getCenterY());
-        c1.setStroke(Color.RED);
-        c1.setStrokeWidth(2);
-        c1.setFill(null);
+        Circle circleState = new Circle();
+        circleState.setRadius(s.getStateView().getCircle().getRadius()+(s.getStateView().getCircle().getStrokeWidth()/2));
+        circleState.setCenterX(s.getStateView().getCircle().getCenterX());
+        circleState.setCenterY(s.getStateView().getCircle().getCenterY());
+        circleState.setStroke(Color.ORANGE);
+        circleState.setStrokeWidth(2);
+        circleState.setFill(null);
         
         
         Rectangle r = new Rectangle(canvasWidth, canvasHeight, Color.WHITE);
-        Group g1 = new Group(r,c1);
+        Group g1 = new Group(r,circleState);
         
         long featuresState = getFeatures(g1);
         long featuresCanvas = getFeatures(group);
         
         
-        group.getChildren().add(c1);
+        group.getChildren().add(circleState);
         long featuresTotal = getFeatures(group);
-        group.getChildren().remove(c1);
+        group.getChildren().remove(circleState);
         
         if(featuresTotal != featuresState+featuresCanvas){
             //System.out.println("inter new state");
+            return true;
+        }
+        //System.out.println("no inter");
+        return false;
+    }
+    
+    private boolean intersectionNewTransition(TransitionController t){
+        QuadCurve tview = t.getTransitionView().getCurve();
+        //MoveTo move = new MoveTo(tview.getStartX(), tview.getStartY());
+        QuadCurve curveTransition = new QuadCurve();        
+        curveTransition.setControlX(tview.getControlX());
+        curveTransition.setControlY(tview.getControlY());
+        curveTransition.setStartX(tview.getStartX());
+        curveTransition.setStartY(tview.getStartY());
+        curveTransition.setEndX(tview.getEndX());
+        curveTransition.setEndY(tview.getEndY());
+        curveTransition.setStroke(Color.ORANGE);
+        curveTransition.setStrokeWidth(2);
+        curveTransition.setFill(null);
+        
+        
+        Rectangle r = new Rectangle(canvasWidth, canvasHeight, Color.WHITE);
+        Group g1 = new Group(r,curveTransition);
+        
+        long featuresTransition = getFeatures(g1);
+        long featuresCanvas = getFeatures(group);
+        
+        
+        group.getChildren().add(curveTransition);
+        long featuresTotal = getFeatures(group);
+        group.getChildren().remove(curveTransition);
+        
+        if(featuresTotal < featuresTransition+featuresCanvas){
+            //System.out.println("inter new state");
+            System.out.println("Total: "+ featuresTotal);
+            System.out.println("Transition: " + featuresTransition);
+            System.out.println("Canvas: " + featuresCanvas);
             return true;
         }
         //System.out.println("no inter");
@@ -957,7 +998,7 @@ public class AFNDController implements Initializable
             ffd.detect(image2, keyPoints);
 
             //Muestra una imagen en una ventana nueva con los vertices detectados 
-           /* Mat c = new Mat(); drawKeypoints(image2, keyPoints, c, new Scalar(0, 0, 255, 0), DrawMatchesFlags.DEFAULT); 
+            /*Mat c = new Mat(); drawKeypoints(image2, keyPoints, c, new Scalar(0, 0, 255, 0), DrawMatchesFlags.DEFAULT); 
             OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat(); 
             CanvasFrame canvasFrame = new CanvasFrame("hola", 1); canvasFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); 
             canvasFrame.showImage(converter.convert(c));*/
