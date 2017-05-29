@@ -24,7 +24,6 @@ import appAFND.model.Dijkstra;
 import appAFND.model.NFA;
 import appAFND.model.State;
 import appAFND.model.Transition;
-import java.applet.AudioClip;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,12 +35,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.event.Event;
-import javafx.event.EventDispatchChain;
-import javafx.event.EventDispatcher;
 import javafx.event.EventHandler;
-import javafx.event.EventType;
-import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
@@ -56,24 +50,17 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
-import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.WritableImage;
-import javafx.scene.input.InputMethodEvent;
-import javafx.scene.input.TouchEvent;
 import javafx.scene.layout.GridPane;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.MoveTo;
-import javafx.scene.shape.Path;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.QuadCurve;
-import javafx.scene.shape.QuadCurveTo;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
+import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.util.Pair;
 import javax.imageio.ImageIO;
@@ -109,6 +96,8 @@ public class AFNDController implements Initializable
     private int radius;
     private ArrayList<StateController> statesList;
     private ArrayList<TransitionController> transitionsList;
+    ArrayList<StateController> statesRedList = new ArrayList<>();
+    ArrayList<TransitionController> transitionsRedList = new ArrayList<>();
     @FXML
     private MenuBar menuBar;
     @FXML
@@ -167,7 +156,7 @@ public class AFNDController implements Initializable
     public void initialize(URL url, ResourceBundle rb) {
         this.dialogInitial();
         
-        this.ffd = FastFeatureDetector.create(20/* threshold for detection */, true /* non-max suppression */, FastFeatureDetector.TYPE_7_12);
+        this.ffd = FastFeatureDetector.create(10/* threshold for detection */, true /* non-max suppression */, FastFeatureDetector.TYPE_9_16);
         this.keyPoints = new KeyPointVector();
         
         this.transitionClickCounter = 0;
@@ -175,7 +164,7 @@ public class AFNDController implements Initializable
         this.canvasWidth = 1200;
         this.canvasHeight = 800;
         
-        this.canvas.setHeight(canvasHeight);
+        this.canvas.setHeight(this.canvasHeight);
         this.canvas.setWidth(this.canvasWidth);
         this.canvas.setFill(Color.WHITE);
         
@@ -183,7 +172,9 @@ public class AFNDController implements Initializable
         this.group.getChildren().add(this.groupStates);
         this.group.getChildren().add(this.groupTransitions);
         
+        
         this.scrollPane.setContent(this.group);
+        
         
         //this.automaton = new NFA();
         
@@ -298,7 +289,7 @@ public class AFNDController implements Initializable
                         Alert overlaped = new Alert(Alert.AlertType.ERROR);
                         overlaped.setTitle("State error");
                         overlaped.setHeaderText("You can't make a state here");
-                        overlaped.setContentText("Is not possible to make a state over a existing state or transition");
+                        overlaped.setContentText("Is not possible to make a state over a existing state or over a existing transition or out of the canvas");
                         overlaped.showAndWait();
                     }
                     
@@ -306,8 +297,8 @@ public class AFNDController implements Initializable
                     else {
                         //Create dialog to set the name of the state
 
-                        //Draw node
-                        stateController.getStateView().drawNode(groupStates);
+                        //Draw state
+                        stateController.getStateView().drawState(groupStates);
                         
                         if (this.statesList.size() == 0) {                            
                             automaton.setInitialState(stateController);
@@ -552,18 +543,18 @@ public class AFNDController implements Initializable
                             transitionStateFrom.fromStateAdd(transitionController);
                             transitionStateTo.toStateAdd(transitionController);
                             
+                            //Intersection->Transition red
                             if(intersectionNewTransition(transitionController)){
-                                transitionController.getTransitionView().getCurve().setStroke(Color.RED);
+                                transitionController.getTransitionView().setRed();
+                                //Add the red transition to a list apart
+                                transitionsRedList.add(transitionController);
                             }
-
-                            /*for(StateController s : statesList){
-                                for(TransitionController t : transitionsList)
-                                    if(stateTransitionInstersection(s, t))
-                                        System.out.println("hola");
-                            }*/
-
+                            else{
+                                transitionsList.add(transitionController);
+                            }
+                            
                             groupTransitions.getChildren().add(transitionview.getTransition());
-                            transitionsList.add(transitionController);
+                            
 
                             this.updateTable();
                         }
@@ -723,9 +714,47 @@ public class AFNDController implements Initializable
     @FXML
     private boolean readWord(ActionEvent event)
     {
+        if(automaton.getFinalStates().isEmpty()){
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Final state error");
+            result.setHeaderText("There are no final states");
+            result.showAndWait();
+            return false;
+        }
+        
+        for(StateController s : statesList){            
+            if(s.compareTo(automaton.getInitialState())!=0 && s.getStateModel().toStateEmpty()){
+                Alert result = new Alert(Alert.AlertType.ERROR);
+                result.setTitle("State error");
+                result.setHeaderText("Unreacheable state:");
+                result.setContentText(s.getStateView().getText().getText());
+                result.showAndWait();
+                return false;
+            }
+                
+        }
+        
+        if(!transitionsRedList.isEmpty()){
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Invalid transition error");
+            result.setHeaderText("Invalid transition detected");
+            result.setContentText("Please, move or delete the transitions showed in red");
+            result.showAndWait();
+            return false;
+        }
+        
+        if(!statesRedList.isEmpty()){
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Invalid state error");
+            result.setHeaderText("Invalid state detected");
+            result.setContentText("Please, move or delete the states showed in red");
+            result.showAndWait();
+            return false;
+        }
+        
         String sp = null;
-        try{
-            Dijkstra d = new Dijkstra(automaton);
+        Dijkstra d = new Dijkstra(automaton);
+        try{            
             d.sp();
             sp = d.getShortestWord();
         }
@@ -739,30 +768,87 @@ public class AFNDController implements Initializable
             return false;
         }
         
-        else if(automaton.getFinalStates().contains(automaton.getInitialState())){
+        /*else if(automaton.getFinalStates().contains(automaton.getInitialState())){
             Alert result = new Alert(Alert.AlertType.INFORMATION);
             result.setTitle("Word accepted");
             result.setHeaderText("The word was accepted!");
             result.showAndWait();
             return true;
-        }
-        else if(!(sp.isEmpty()))
+        }*/
+        
+        else if(!d.isExistPath())
         {
-            return this.automaton.readWord(wordField.getText());
+            Alert shortest = new Alert(Alert.AlertType.ERROR);
+            shortest.setTitle("Viable path error");
+            shortest.setHeaderText("There is no viable path");
+            shortest.showAndWait();
+            return false;
+        }   
+        else if(sp.isEmpty() && wordField.getText().isEmpty())
+        {
+            Alert shortest = new Alert(Alert.AlertType.INFORMATION);
+            shortest.setTitle("Word accepted");
+            shortest.setHeaderText("The word was accepted!");
+            shortest.showAndWait();
+            return true;
+        
         }
         else
         {
-            Alert result = new Alert(Alert.AlertType.ERROR);
-            result.setTitle("Viable path error");
-            result.setHeaderText("There is no viable path");
-            result.showAndWait();
-            return false;
+            return this.automaton.readWord(wordField.getText());
         }
+        /*else
+        {
+            Alert shortest = new Alert(Alert.AlertType.INFORMATION);
+            shortest.setTitle("Word accepted");
+            shortest.setHeaderText("The word was accepted!");
+            shortest.setContentText("This automaton accepts any word");
+            shortest.showAndWait();
+            return true;
+        }*/
         
     }
 
     @FXML
     private void shortestWord(ActionEvent event) {
+        if(automaton.getFinalStates().isEmpty()){
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Final state error");
+            result.setHeaderText("There are no final states");
+            result.showAndWait();
+            return;
+        }
+        
+        for(StateController s : statesList){            
+            if(s.compareTo(automaton.getInitialState())!=0 && s.getStateModel().toStateEmpty()){
+                Alert result = new Alert(Alert.AlertType.ERROR);
+                result.setTitle("State error");
+                result.setHeaderText("Unreacheable state:");
+                result.setContentText(s.getStateView().getText().getText());
+                result.showAndWait();
+                return;
+            }
+                
+        }
+        
+        if(!transitionsRedList.isEmpty()){
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Invalid transition error");
+            result.setHeaderText("Invalid transition detected");
+            result.setContentText("Please, move or delete the transitions showed in red");
+            result.showAndWait();
+            return;
+        }
+        
+        if(!statesRedList.isEmpty()){
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Invalid state error");
+            result.setHeaderText("Invalid state detected");
+            result.setContentText("Please, move or delete the states showed in red");
+            result.showAndWait();
+            return;
+        }
+        
         String sp = null;
         Dijkstra d = new Dijkstra(automaton);
         try{
@@ -796,8 +882,8 @@ public class AFNDController implements Initializable
         {
             Alert shortest = new Alert(Alert.AlertType.INFORMATION);
             shortest.setTitle("Shotest path");
-            shortest.setHeaderText("This automaton accepts any word");
-            shortest.setContentText("The shortest path is: \"\" ");
+            shortest.setHeaderText("The shortest path is:");
+            shortest.setContentText("\"\"");
             shortest.showAndWait();
         }
         else
@@ -835,24 +921,30 @@ public class AFNDController implements Initializable
         circleState.setRadius(s.getStateView().getCircle().getRadius()+(s.getStateView().getCircle().getStrokeWidth()/2));
         circleState.setCenterX(s.getStateView().getCircle().getCenterX());
         circleState.setCenterY(s.getStateView().getCircle().getCenterY());
-        circleState.setStroke(Color.ORANGE);
+        circleState.setStroke(Color.BLACK);
         circleState.setStrokeWidth(2);
         circleState.setFill(null);
         
         
-        Rectangle r = new Rectangle(canvasWidth, canvasHeight, Color.WHITE);
+        Rectangle r = new Rectangle(0, 0, 0, 0);
+        r.setHeight(canvasHeight);
+        r.setWidth(canvasWidth);
+        r.setFill(Color.WHITE);
+        
         Group g1 = new Group(r,circleState);
         
         long featuresState = getFeatures(g1);
-        long featuresCanvas = getFeatures(group);
         
+        long featuresCanvas = getFeatures(group);
         
         group.getChildren().add(circleState);
         long featuresTotal = getFeatures(group);
         group.getChildren().remove(circleState);
         
         if(featuresTotal != featuresState+featuresCanvas){
-            //System.out.println("inter new state");
+            System.out.println("Total: "+featuresTotal);
+            System.out.println("State: "+featuresState);
+            System.out.println("Canvas: "+featuresCanvas);
             return true;
         }
         //System.out.println("no inter");
@@ -873,11 +965,40 @@ public class AFNDController implements Initializable
         curveTransition.setStrokeWidth(2);
         curveTransition.setFill(null);
         
+        StateController from = t.getTransitionFrom();
+        StateController to = t.getTransitionTo();
+        
+        Circle circleFrom = new Circle();
+        circleFrom.setRadius(from.getStateView().getCircle().getRadius());
+        circleFrom.setCenterX(from.getStateView().getCircle().getCenterX());
+        circleFrom.setCenterY(from.getStateView().getCircle().getCenterY());
+        circleFrom.setStroke(from.getStateView().getCircle().getStroke());
+        circleFrom.setStrokeWidth(from.getStateView().getCircle().getStrokeWidth());
+        circleFrom.setFill(from.getStateView().getCircle().getFill());
+        
+        Text textFrom = new Text(from.getStateView().getText().getText());
+        textFrom.setX(from.getStateView().getText().getX());
+        textFrom.setY(from.getStateView().getText().getY());
+        
+        Circle circleTo = new Circle();
+        circleTo.setRadius(to.getStateView().getCircle().getRadius());
+        circleTo.setCenterX(to.getStateView().getCircle().getCenterX());
+        circleTo.setCenterY(to.getStateView().getCircle().getCenterY());
+        circleTo.setStroke(to.getStateView().getCircle().getStroke());
+        circleTo.setStrokeWidth(to.getStateView().getCircle().getStrokeWidth());
+        circleTo.setFill(to.getStateView().getCircle().getFill());
+        
+        Text textTo = new Text(to.getStateView().getText().getText());
+        textTo.setX(to.getStateView().getText().getX());
+        textTo.setY(to.getStateView().getText().getY());
         
         Rectangle r = new Rectangle(canvasWidth, canvasHeight, Color.WHITE);
-        Group g1 = new Group(r,curveTransition);
+        Group g1 = new Group(r,circleFrom,circleTo,textFrom,textTo,curveTransition);
         
-        long featuresTransition = getFeatures(g1);
+        
+        long featuresTransition = getFeatures(g1);  
+        g1.getChildren().remove(curveTransition);
+        long featuresStates = getFeatures(g1); 
         long featuresCanvas = getFeatures(group);
         
         
@@ -885,14 +1006,21 @@ public class AFNDController implements Initializable
         long featuresTotal = getFeatures(group);
         group.getChildren().remove(curveTransition);
         
-        if(featuresTotal < featuresTransition+featuresCanvas){
+        
+        
+        if(featuresTotal != (featuresTransition-featuresStates)+featuresCanvas){
             //System.out.println("inter new state");
-            System.out.println("Total: "+ featuresTotal);
-            System.out.println("Transition: " + featuresTransition);
-            System.out.println("Canvas: " + featuresCanvas);
+            /*System.out.println("Total: "+ featuresTotal);
+            System.out.println("Transition: " + (featuresTransition-featuresStates));
+            System.out.println("Canvas: " + featuresCanvas);*/
             return true;
         }
         //System.out.println("no inter");
+        return false;
+    }
+    
+    boolean intersectionMoveTransition(TransitionController t){
+        
         return false;
     }
     

@@ -136,6 +136,7 @@ public abstract class Automaton {
             //Se agregan las transiciones vacias a nuevoaux
             while(!(nuevos.isEmpty()))
             {
+                //System.out.println("hola");
                 ArrayList<StateController> nuevosaux = new ArrayList();
                 for(StateController nuevo : nuevos){
                     if(!(f.get(nuevo).get("\u03BB").isEmpty())){
@@ -150,13 +151,23 @@ public abstract class Automaton {
                 activos.addAll(nuevos);
 
             }
+            //System.out.println(activos);
 
             //Leer caracter
             //Agregar a los activos
             ArrayList<StateController> activosaux = new ArrayList();
+            //boolean canContinue = true;
             for(StateController activo : activos){
                 activosaux.addAll(f.get(activo).get(((Character)characters[i]).toString()));
+                /*if(f.get(activo).get(((Character)characters[i]).toString()).isEmpty())
+                    activosaux.remove(activo);*/
             }
+            /*System.out.println(canContinue);
+            if (!canContinue){
+                refuse.showAndWait();
+                return false;
+            }*/
+            
             activos.clear();
             activos.addAll(activosaux);
             nuevos.clear();
@@ -167,14 +178,34 @@ public abstract class Automaton {
                return false;
             }
 
-            for(StateController activo : activos){
-                //System.out.println("activo:"+activo.getStateLabel());
-                if (finalStates.contains(activo)){
-                    accepted.showAndWait();
-                    return true;
-                }
-            }
+            
 
+        }
+        
+        while(!(nuevos.isEmpty()))
+            {
+                //System.out.println("hola");
+                ArrayList<StateController> nuevosaux = new ArrayList();
+                for(StateController nuevo : nuevos){
+                    if(!(f.get(nuevo).get("\u03BB").isEmpty())){
+                        nuevosaux.addAll(f.get(nuevo).get("\u03BB"));
+                    }
+                }
+                //La lista de nuevos = nuevosaux
+                nuevos.clear();
+                nuevos.addAll(nuevosaux);
+
+                //Agregar a los activos los nuevos
+                activos.addAll(nuevos);
+
+            }
+        
+        for(StateController activo : activos){
+            //System.out.println("activo:"+activo.getStateLabel());
+            if (finalStates.contains(activo)){
+                accepted.showAndWait();
+                return true;
+            }
         }
 
             
