@@ -5,6 +5,7 @@
  */
 package appAFND.view;
 
+import appAFND.controller.StateController;
 import com.sun.javafx.tk.FontLoader;
 import com.sun.javafx.tk.Toolkit;
 import javafx.beans.property.DoubleProperty;
@@ -37,39 +38,75 @@ public class TransitionView {
     private Text text;
     private Group group = new Group();
     private double canvasHeight, canvasWidth;
+    private StateController from, to;
     
-    public TransitionView(Circle c1, Circle c2, String label, double canvasHeight, double canvasWidth){
+    public TransitionView(StateController from, StateController to, String label, double canvasHeight, double canvasWidth){
         this.curve = new QuadCurve();
         this.canvasHeight = canvasHeight;
         this.canvasWidth = canvasWidth;
+        this.from = from;
+        this.to = to;
         
-        //Calculate the start/end points of the transition
-        double sx = calcX(c1,c2);
-        double sy = calcY(c1,c2);
-        double ex = calcX(c2,c1);
-        double ey = calcY(c2,c1);
-        
-        this.curve.setStartX(sx);
-        this.curve.setStartY(sy);        
-        this.curve.setEndX(ex);
-        this.curve.setEndY(ey);
-        
-        double midx = (sx+ex)/2;
-        double midy = (sy+ey)/2;
-        this.curve.setControlX(midx);
-        this.curve.setControlY(midy);     
-        
-        this.curve.setStroke(Color.web("#0169CE"));
-        this.curve.setStrokeWidth(2);
-        this.curve.setStrokeLineCap(StrokeLineCap.BUTT);
-        this.curve.setFill(Color.TRANSPARENT);
+        Circle c1 = this.from.getStateView().getCircle();
+        Circle c2 = this.to.getStateView().getCircle();
         
         this.text = new Text(label);
         FontLoader fontLoader = Toolkit.getToolkit().getFontLoader();
         Font font = this.text.getFont();
         float textWidth = fontLoader.computeStringWidth(label, font);
-        this.text.setX(midx-(textWidth/2));
-        this.text.setY(midy-12);        
+        
+        if(this.from.equals(to)){
+            if(c1.getCenterY()-c1.getRadius()==0)
+            {
+                this.curve.setStartX(c1.getCenterX()-5);
+                this.curve.setStartY(c1.getCenterY()+(c1.getRadius()+(c1.getStrokeWidth()/2))-1.5);        
+                this.curve.setEndX(c1.getCenterX()+5);
+                this.curve.setEndY(c1.getCenterY()+(c1.getRadius()+(c1.getStrokeWidth()/2))-1.5);     
+                this.curve.setControlX(c1.getCenterX());
+                this.curve.setControlY(c1.getCenterY()+70);   
+
+                this.text.setX(c1.getCenterX()-(textWidth/2));
+                this.text.setY(c1.getCenterY()+35);  
+            }
+            else{
+                this.curve.setStartX(c1.getCenterX()-5);
+                this.curve.setStartY(c1.getCenterY()-(c1.getRadius()+(c1.getStrokeWidth()/2))+1.5);        
+                this.curve.setEndX(c1.getCenterX()+5);
+                this.curve.setEndY(c1.getCenterY()-(c1.getRadius()+(c1.getStrokeWidth()/2))+1.5);     
+                this.curve.setControlX(c1.getCenterX());
+                this.curve.setControlY(c1.getCenterY()-70);   
+
+                this.text.setX(c1.getCenterX()-(textWidth/2));
+                this.text.setY(c1.getCenterY()-59);  
+            }
+        }
+        else{
+            //Calculate the start/end points of the transition            
+            double sx = calcX(c1,c2);
+            double sy = calcY(c1,c2);
+            double ex = calcX(c2,c1);
+            double ey = calcY(c2,c1);
+
+            this.curve.setStartX(sx);
+            this.curve.setStartY(sy);        
+            this.curve.setEndX(ex);
+            this.curve.setEndY(ey);
+
+            double midx = (sx+ex)/2;
+            double midy = (sy+ey)/2;
+            this.curve.setControlX(midx);
+            this.curve.setControlY(midy); 
+            
+            this.text.setX(midx-(textWidth/2));
+            this.text.setY(midy-12);  
+        }
+        this.curve.setStroke(Color.web("#0169CE"));
+        this.curve.setStrokeWidth(2);
+        this.curve.setStrokeLineCap(StrokeLineCap.BUTT);
+        this.curve.setFill(null);
+        
+        
+              
         
         this.center = new AnchorCenter(Color.GOLD, curve, text, textWidth);
         this.start = new Anchor(Color.TRANSPARENT, curve.startXProperty(), curve.startYProperty(), curve, center, text, textWidth, true);
@@ -83,7 +120,11 @@ public class TransitionView {
     public Group getTransition() {
         return this.group;
     }
-
+    
+    public QuadCurve getCurve(){
+        return this.curve;
+    }
+    
     private double calcX(Circle c1, Circle c2) {
         double Ax = c1.getCenterX();
         double Ay = c1.getCenterY();

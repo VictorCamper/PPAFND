@@ -43,5 +43,15 @@ public class TransitionController
     {
         model.setTo(to);
     }
+
+    public Transition getTransitionModel() {
+        return model;
+    }
+
+    public TransitionView getTransitionView() {
+        return view;
+    }
+    
+    
     
 }
