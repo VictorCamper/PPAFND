@@ -61,5 +61,14 @@ public class State
     public boolean toStateRemove(TransitionController o) {
         return toState.remove(o);
     }
+    
+    public ArrayList<TransitionController> getFromState()
+    {
+        return this.fromState;
+    }
    
+    public ArrayList<TransitionController> getToState()
+    {
+        return this.toState;
+    }
 }
