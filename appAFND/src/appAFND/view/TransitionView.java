@@ -7,13 +7,24 @@ package appAFND.view;
 
 import appAFND.controller.StateController;
 import appAFND.controller.TransitionController;
+import appAFND.model.Automaton;
+import appAFND.model.NFA;
+import appAFND.model.Transition;
 import com.sun.javafx.tk.FontLoader;
 import com.sun.javafx.tk.Toolkit;
+import java.util.ArrayList;
+import java.util.HashMap;
 import javafx.beans.property.DoubleProperty;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
+import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -37,11 +48,13 @@ public class TransitionView {
     private Anchor end;
     private Arrow arrow;
     private Text text;
+    private double midx,midy;
     private Group group = new Group();
     private double canvasHeight, canvasWidth;
     private StateController from, to;
     private AFNDController afndController;
     private TransitionController tController;
+    private ContextMenu context= new ContextMenu();
     
     public TransitionView(StateController from, StateController to, String label, double canvasHeight, double canvasWidth, AFNDController afndController){
         this.curve = new QuadCurve();
@@ -50,6 +63,10 @@ public class TransitionView {
         this.from = from;
         this.to = to;
         this.afndController = afndController;
+        MenuItem edit = new MenuItem("Edit transition");
+        //MenuItem add = new MenuItem("add");
+        MenuItem delete = new MenuItem("Delete transition");
+        context.getItems().addAll(edit,delete);
         
         Circle c1 = this.from.getStateView().getCircle();
         Circle c2 = this.to.getStateView().getCircle();
@@ -96,8 +113,8 @@ public class TransitionView {
             this.curve.setEndX(ex);
             this.curve.setEndY(ey);
 
-            double midx = (sx+ex)/2;
-            double midy = (sy+ey)/2;
+            midx = (sx+ex)/2;
+            midy = (sy+ey)/2;
             this.curve.setControlX(midx);
             this.curve.setControlY(midy); 
             
@@ -119,8 +136,152 @@ public class TransitionView {
         this.arrow = new Arrow(curve, 1f, arrowShape);
         
         this.group.getChildren().addAll(this.curve, this.arrow, this.start, this.center, this.end, this.text);
-    }
+        
+        this.curve.setOnMouseClicked(new EventHandler<MouseEvent>()
+        {
+            @Override
+            public void handle(MouseEvent event)
+            {
+                if (event.getButton() == MouseButton.SECONDARY)
+                    contextMenu(event);
+                else
+                    afndController.transitionClicked(tController);
+            }
+        });
+        
+        this.curve.setOnMouseEntered(new EventHandler<MouseEvent>()
+        {
+            @Override
+            public void handle(MouseEvent event)
+            {
+                ((Node) event.getSource()).setCursor(Cursor.HAND);
+            }
+        });
+        
+        this.curve.setOnMouseExited(new EventHandler<MouseEvent>()
+        {
+            @Override
+            public void handle(MouseEvent event)
+            {
+                ((Node) event.getSource()).setCursor(Cursor.DEFAULT);
+            }
+        });
+        
+        edit.setOnAction(new EventHandler<ActionEvent>()
+        {
 
+            @Override
+            public void handle(ActionEvent event)
+            {
+                //boolean continuee = false;
+                Automaton automaton = afndController.getAutomaton();
+                String[] chars = afndController.dialogTransition("Modify");
+                if (!chars[0].isEmpty()){ 
+                    boolean existCharValid = false;
+                        for (String c : chars){
+                            Character c2 = c.charAt(0);
+                            if(automaton.getAlphabet().alphabetContains(c2)){
+                                existCharValid = true;                            
+                            }
+                            if(existCharValid)
+                                break;
+                        }
+                    
+                    if(existCharValid){                    
+                        String label = new String();
+                        for (String c : chars){
+                            Character c2 = c.charAt(0);
+                            String c2s = c2.toString();
+                            if (automaton.getAlphabet().alphabetContains(c2)){
+                                if(label.isEmpty()){                                
+                                    label = label.concat(c2s);
+                                    if(automaton instanceof NFA){
+                                        ((NFA)automaton).addTransition(from, to, c2s);
+                                    }
+                                }
+                                else
+                                    if (!label.contains(c2s))
+                                        label = label.concat(", ").concat(c2s);
+                                        if(automaton instanceof NFA){
+                                            ((NFA)automaton).addTransition(from, to, c2s);
+                                        }
+                            }
+                        }
+                        //Edit transition
+                        HashMap<String, ArrayList<StateController>> aux = afndController.getAutomaton().getF().get(from);
+                        
+                        for(Character c :afndController.getAutomaton().getAlphabet().getCharacters()){
+                            String s = c.toString();
+                            aux.get(s).clear();
+                        }
+                        
+                        text.setText(label);
+                        String[] tran2 = label.split(", ");
+                        
+                        for(String s2 : tran2){
+                            //if (!s.contains(s2))
+                                aux.get(s2).add(to);
+                        }
+                        
+                        
+                        FontLoader fontLoader = Toolkit.getToolkit().getFontLoader();
+                        Font font = text.getFont();
+                        float textWidth = fontLoader.computeStringWidth(label, font);
+                        text.setX(midx-(textWidth/2));
+                        
+                        
+                          
+                    }
+                }
+                
+                afndController.updateTable();              
+                
+            }
+        });
+        
+        delete.setOnAction(new EventHandler<ActionEvent>()
+        {
+
+            @Override
+            public void handle(ActionEvent event)
+            {
+                //Delete from the list of transitions of the linked states
+                to.getStateModel().getToState().remove(tController);
+                from.getStateModel().getFromState().remove(tController);
+                
+                //Delete transition from the list of transitions
+                afndController.transitionsList.remove(tController);
+                afndController.transitionsRedList.remove(tController);
+                
+                //Delete from the logic
+                HashMap<String, ArrayList<StateController>> aux = afndController.getAutomaton().getF().get(from);
+                String[] tran = text.getText().split(", ");
+                for(String s : tran){
+                    aux.get(s).remove(to);
+                }
+                
+                afndController.updateTable();
+                
+                //Delete visually
+                afndController.getGroupTransitions().getChildren().remove(tController.getTransitionView().getTransition());
+                afndController.getGroup().getChildren().remove(tController.getTransitionView().getTransition());
+            }
+        });
+    }
+    
+    private void contextMenu(MouseEvent event)
+    {
+        if (event.getButton() == MouseButton.SECONDARY)
+        {
+            double x = event.getScreenX();
+            double y = event.getScreenY();
+            context.show(curve, x, y);
+        } else
+        {
+            context.hide();
+        }
+    }
+    
     public Group getTransition() {
         return this.group;
     }

@@ -60,6 +60,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.QuadCurve;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.util.Pair;
@@ -94,8 +95,8 @@ public class AFNDController implements Initializable
     private ScrollPane scrollPane;
 
     private int radius;
-    private ArrayList<StateController> statesList;
-    private ArrayList<TransitionController> transitionsList;
+    ArrayList<StateController> statesList;
+    ArrayList<TransitionController> transitionsList;
     ArrayList<StateController> statesRedList = new ArrayList<>();
     ArrayList<TransitionController> transitionsRedList = new ArrayList<>();
     @FXML
@@ -497,13 +498,20 @@ public class AFNDController implements Initializable
                 boolean doubleTransition = false;
                 for(TransitionController t : transitionsList){
                     if(t.getTransitionFrom().equals(transitionStateFrom) && 
-                            t.getTransitionTo().equals(transitionStateTo))
+                            t.getTransitionTo().equals(transitionStateTo)){                       
                         doubleTransition=true;
+                    }
+                }
+                for(TransitionController t : transitionsRedList){
+                    if(t.getTransitionFrom().equals(transitionStateFrom) && 
+                            t.getTransitionTo().equals(transitionStateTo)){                       
+                        doubleTransition=true;
+                    }
                 }
                 
                 if(!doubleTransition){
                     
-                    String[] chars = dialogTransition();
+                    String[] chars = dialogTransition("Create");
 
                     buttonTransition.fire();
 
@@ -575,8 +583,7 @@ public class AFNDController implements Initializable
             }
         }
     }
-
-    private String dialogState() {
+    String dialogState() {
         // Create the custom dialog.
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("New state");
@@ -643,14 +650,14 @@ public class AFNDController implements Initializable
         });*/
     }
 
-    private String[] dialogTransition() {
+    String[] dialogTransition(String buttonLabel) {
         // Create the custom dialog.
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("New transition");
         dialog.setHeaderText("Introduce the characters for the transition (separated by comma ,)");
 
         // Set the button types.
-        ButtonType loginButtonType = new ButtonType("Create", ButtonData.OK_DONE);
+        ButtonType loginButtonType = new ButtonType(buttonLabel, ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
 
         // Create the username and password labels and fields.
@@ -1034,7 +1041,7 @@ public class AFNDController implements Initializable
         curveTransition.setEndX(tview.getCurve().getEndX());
         curveTransition.setEndY(tview.getCurve().getEndY());
         curveTransition.setStroke(Color.ORANGE);
-        curveTransition.setStrokeWidth(2);
+        curveTransition.setStrokeWidth(1);
         curveTransition.setFill(null);
         
         StateController from = tview.getFrom();
@@ -1066,17 +1073,74 @@ public class AFNDController implements Initializable
         
         
         Rectangle r = new Rectangle(canvasWidth, canvasHeight, Color.WHITE);
-        Group g1 = new Group(r,circleFrom,circleTo,textFrom,textTo,curveTransition);
-         
+        
+        //Intersection between the transition and the asociated states
+//        Group g1 = new Group(r,circleFrom,textFrom,curveTransition);
+//        long featuresFrom = getFeatures(g1);
+//        Group g2 = new Group(r,circleTo,textTo, curveTransition);      
+//        
+//        long featuresTo = getFeatures(g2);
+//        
+//        Group g3 = new Group(r,curveTransition);
+//        long featuresCurve = getFeatures(g3);
+//        
+//        Group gt = new Group(r,circleFrom,circleTo,textFrom,textTo,curveTransition);
+//        long featuresT = getFeatures(gt);
+//        
+//        System.out.println("Total: "+featuresT);
+//        System.out.println("Result: "+(featuresFrom+featuresTo-featuresCurve));
+//        
+//        if(featuresT < featuresFrom+featuresTo-featuresCurve){
+//            return true;
+//        }
+
+        Shape interFrom = Shape.intersect(circleFrom, curveTransition);
+        Shape interTo = Shape.intersect(circleTo, curveTransition);
+        
+        if(interFrom.getBoundsInLocal().getWidth()>3){
+            if(!statesRedList.contains(from))
+                statesRedList.add(from);
+            from.getStateView().getCircle().setFill(Color.CRIMSON);
+            from.getStateView().getCircle().setStroke(Color.CRIMSON);
+            return true;
+        }
+        else{
+            if(statesRedList.contains(from))
+                statesRedList.remove(from);
+            from.getStateView().getCircle().setFill(Color.DEEPSKYBLUE);
+            if(automaton.getFinalStates().contains(from))
+                from.getStateView().getCircle().setStroke(Color.web("#006485"));
+            else
+                from.getStateView().getCircle().setStroke(Color.DEEPSKYBLUE);
+        }
+        
+        if(interTo.getBoundsInLocal().getWidth()>3){
+            if(!statesRedList.contains(to))
+                statesRedList.add(to);
+            to.getStateView().getCircle().setFill(Color.CRIMSON);
+            to.getStateView().getCircle().setStroke(Color.CRIMSON);
+            return true;
+        }
+        else{
+            if(statesRedList.contains(to))
+                statesRedList.remove(to);
+            to.getStateView().getCircle().setFill(Color.DEEPSKYBLUE);
+            if(automaton.getFinalStates().contains(to))
+                to.getStateView().getCircle().setStroke(Color.web("#006485"));
+            else
+                to.getStateView().getCircle().setStroke(Color.DEEPSKYBLUE);
+        }
+        
+        Group g4 = new Group(r,circleFrom,circleTo,textFrom,textTo,curveTransition);
         
         //todo menos transicion
         group.getChildren().remove(tview.getTransition());
         long featuresCanvas = getFeatures(group);
         
         //transicion con circulos - circulos
-        long featuresTransition = getFeatures(g1);
-        g1.getChildren().remove(curveTransition);
-        featuresTransition -= getFeatures(g1);
+        long featuresTransition = getFeatures(g4);
+        g4.getChildren().remove(curveTransition);
+        featuresTransition -= getFeatures(g4);
         
         //todo con curva transicion
         group.getChildren().add(curveTransition);
@@ -1214,6 +1278,7 @@ public class AFNDController implements Initializable
             ffd.detect(image2, keyPoints);
 
             //Muestra una imagen en una ventana nueva con los vertices detectados 
+            
             /*Mat c = new Mat(); drawKeypoints(image2, keyPoints, c, new Scalar(0, 0, 255, 0), DrawMatchesFlags.DEFAULT); 
             OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat(); 
             CanvasFrame canvasFrame = new CanvasFrame("hola", 1); canvasFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); 
@@ -1259,6 +1324,11 @@ public class AFNDController implements Initializable
         this.statesRedList.remove(state);
         this.transitionsList.removeAll(transitions);
         this.transitionsRedList.removeAll(transitions);
+    }
+
+    void transitionClicked(TransitionController tController)
+    {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }
