@@ -149,13 +149,14 @@ public class AFNDController implements Initializable
     @FXML
     private Button buttonExecute;
 
+    int stateCounter;
     /**
      * Initializes the controller class.
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         this.dialogInitial();
-        
+        this.stateCounter = 0;
         this.ffd = FastFeatureDetector.create(10/* threshold for detection */, true /* non-max suppression */, FastFeatureDetector.TYPE_9_16);
         this.keyPoints = new KeyPointVector();
         
@@ -260,7 +261,7 @@ public class AFNDController implements Initializable
                 
             case "State":
                 //String name = dialogState();              // Modified by Victor
-                String name = "Q" + this.automaton.getStates().size();
+                String name = "Q" + this.stateCounter;
                 //If the user write a name for the state, create the state, add it to the list of states,
                 //draw it in the canvas, add it to the automaton and update table.
                 if (!name.isEmpty()){        
@@ -309,12 +310,14 @@ public class AFNDController implements Initializable
                             arrow.getTransforms().add(new Rotate(90, 0, 0));
                             arrow.setFill(Color.YELLOWGREEN);
                             this.groupStates.getChildren().add(arrow);
+                            stateController.getStateView().setArrow(arrow);
                         }
                         //Add state to the list of states
                         this.statesList.add(stateController);
                         //Add state to the automaton
                         this.automaton.addState(stateController);                        
                         //Update table
+                        this.stateCounter++;
                         this.updateTable();                        
                     }
                 }
@@ -1219,4 +1222,43 @@ public class AFNDController implements Initializable
             //Cantidad de vertices detectados 
              return keyPoints.size();
     }
+
+    public Group getGroup()
+    {
+        return group;
+    }
+
+    public void setGroup(Group group)
+    {
+        this.group = group;
+    }
+
+    public Group getGroupStates()
+    {
+        return groupStates;
+    }
+
+    public void setGroupStates(Group groupStates)
+    {
+        this.groupStates = groupStates;
+    }
+
+    public Group getGroupTransitions()
+    {
+        return groupTransitions;
+    }
+
+    public void setGroupTransitions(Group groupTransitions)
+    {
+        this.groupTransitions = groupTransitions;
+    }
+    
+    public void removeStateAuxiliar(StateController state, ArrayList<TransitionController> transitions)
+    {
+        this.statesList.remove(state);
+        this.statesRedList.remove(state);
+        this.transitionsList.removeAll(transitions);
+        this.transitionsRedList.removeAll(transitions);
+    }
+    
 }

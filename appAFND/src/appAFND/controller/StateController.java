@@ -73,5 +73,5 @@ public class StateController implements Comparable<StateController>
     {
         return this.view.compareTo(o.getStateView());
     }
-    
+   
 }
