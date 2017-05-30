@@ -149,17 +149,17 @@ public class StateView implements Comparable<StateView>
             @Override
             public void handle(ActionEvent event)
             {
-                Text text;
+                Text text2;
                 String label = afndcontroller.dialogState();
-                text = new Text(label);
+                text2 = new Text(label);
                 FontLoader fontLoader = Toolkit.getToolkit().getFontLoader();
-                Font font = text.getFont();
+                Font font = text2.getFont();
                 float labelWidth = fontLoader.computeStringWidth(label, font);
 
+                
+                text.setText(text2.getText());
                 text.setX(x - (labelWidth / 2));
                 text.setY(y + 4);
-                text.setWrappingWidth(radius * 2);
-                getText().setText(text.toString());
                 afndcontroller.updateTable();
             }
                 
