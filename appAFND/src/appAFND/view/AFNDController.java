@@ -95,8 +95,8 @@ public class AFNDController implements Initializable
     private ScrollPane scrollPane;
 
     private int radius;
-    private ArrayList<StateController> statesList;
-    private ArrayList<TransitionController> transitionsList;
+    ArrayList<StateController> statesList;
+    ArrayList<TransitionController> transitionsList;
     ArrayList<StateController> statesRedList = new ArrayList<>();
     ArrayList<TransitionController> transitionsRedList = new ArrayList<>();
     @FXML
@@ -498,13 +498,20 @@ public class AFNDController implements Initializable
                 boolean doubleTransition = false;
                 for(TransitionController t : transitionsList){
                     if(t.getTransitionFrom().equals(transitionStateFrom) && 
-                            t.getTransitionTo().equals(transitionStateTo))
+                            t.getTransitionTo().equals(transitionStateTo)){                       
                         doubleTransition=true;
+                    }
+                }
+                for(TransitionController t : transitionsRedList){
+                    if(t.getTransitionFrom().equals(transitionStateFrom) && 
+                            t.getTransitionTo().equals(transitionStateTo)){                       
+                        doubleTransition=true;
+                    }
                 }
                 
                 if(!doubleTransition){
                     
-                    String[] chars = dialogTransition();
+                    String[] chars = dialogTransition("Create");
 
                     buttonTransition.fire();
 
@@ -643,14 +650,14 @@ public class AFNDController implements Initializable
         });*/
     }
 
-    String[] dialogTransition() {
+    String[] dialogTransition(String buttonLabel) {
         // Create the custom dialog.
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("New transition");
         dialog.setHeaderText("Introduce the characters for the transition (separated by comma ,)");
 
         // Set the button types.
-        ButtonType loginButtonType = new ButtonType("Create", ButtonData.OK_DONE);
+        ButtonType loginButtonType = new ButtonType(buttonLabel, ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
 
         // Create the username and password labels and fields.
@@ -1319,7 +1326,7 @@ public class AFNDController implements Initializable
         this.transitionsRedList.removeAll(transitions);
     }
 
-    void stateClicked(TransitionController tController)
+    void transitionClicked(TransitionController tController)
     {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }

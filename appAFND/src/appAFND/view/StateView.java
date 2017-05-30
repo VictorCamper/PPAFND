@@ -102,6 +102,9 @@ public class StateView implements Comparable<StateView>
             @Override
             public void handle(ActionEvent event)
             {
+                afndcontroller.statesList.remove(controller);
+                afndcontroller.statesRedList.remove(controller);
+                
                 ArrayList<TransitionController> transitions = new ArrayList<>();
                 //transitions.addAll(controller.getStateModel().getFromState());
                 transitions.addAll(controller.getStateModel().getToState());
@@ -124,6 +127,7 @@ public class StateView implements Comparable<StateView>
                 transitions.addAll(controller.getStateModel().getFromState());
                 for(TransitionController transition : transitions)
                 {
+                    afndcontroller.getGroupTransitions().getChildren().remove(transition.getTransitionView().getTransition());
                     afndcontroller.getGroup().getChildren().remove(transition.getTransitionView().getTransition());
                 }
 

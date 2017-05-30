@@ -7,9 +7,13 @@ package appAFND.view;
 
 import appAFND.controller.StateController;
 import appAFND.controller.TransitionController;
+import appAFND.model.Automaton;
+import appAFND.model.NFA;
+import appAFND.model.Transition;
 import com.sun.javafx.tk.FontLoader;
 import com.sun.javafx.tk.Toolkit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import javafx.beans.property.DoubleProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -43,6 +47,7 @@ public class TransitionView {
     private Anchor end;
     private Arrow arrow;
     private Text text;
+    private double midx,midy;
     private Group group = new Group();
     private double canvasHeight, canvasWidth;
     private StateController from, to;
@@ -57,9 +62,10 @@ public class TransitionView {
         this.from = from;
         this.to = to;
         this.afndController = afndController;
-        MenuItem edit = new MenuItem("edit");
-        MenuItem add = new MenuItem("add");
-        context.getItems().addAll(edit,add);
+        MenuItem edit = new MenuItem("Edit transition");
+        //MenuItem add = new MenuItem("add");
+        MenuItem delete = new MenuItem("Delete transition");
+        context.getItems().addAll(edit,delete);
         
         Circle c1 = this.from.getStateView().getCircle();
         Circle c2 = this.to.getStateView().getCircle();
@@ -106,8 +112,8 @@ public class TransitionView {
             this.curve.setEndX(ex);
             this.curve.setEndY(ey);
 
-            double midx = (sx+ex)/2;
-            double midy = (sy+ey)/2;
+            midx = (sx+ex)/2;
+            midy = (sy+ey)/2;
             this.curve.setControlX(midx);
             this.curve.setControlY(midy); 
             
@@ -135,10 +141,10 @@ public class TransitionView {
             @Override
             public void handle(MouseEvent event)
             {
-                if (event.getButton() == MouseButton.PRIMARY){
-                    afndController.stateClicked(tController);
-                }
-                contextMenu(event);
+                if (event.getButton() != MouseButton.PRIMARY)
+                    contextMenu(event);
+                else
+                    afndController.transitionClicked(tController);
             }
         });
         
@@ -148,8 +154,70 @@ public class TransitionView {
             @Override
             public void handle(ActionEvent event)
             {
-                boolean continuee = false;
-                String[] transitionString = afndController.dialogTransition();
+                //boolean continuee = false;
+                Automaton automaton = afndController.getAutomaton();
+                String[] chars = afndController.dialogTransition("Modify");
+                if (!chars[0].isEmpty()){ 
+                    boolean existCharValid = false;
+                        for (String c : chars){
+                            Character c2 = c.charAt(0);
+                            if(automaton.getAlphabet().alphabetContains(c2)){
+                                existCharValid = true;                            
+                            }
+                            if(existCharValid)
+                                break;
+                        }
+                    
+                    if(existCharValid){                    
+                        String label = new String();
+                        for (String c : chars){
+                            Character c2 = c.charAt(0);
+                            String c2s = c2.toString();
+                            if (automaton.getAlphabet().alphabetContains(c2)){
+                                if(label.isEmpty()){                                
+                                    label = label.concat(c2s);
+                                    if(automaton instanceof NFA){
+                                        ((NFA)automaton).addTransition(from, to, c2s);
+                                    }
+                                }
+                                else
+                                    if (!label.contains(c2s))
+                                        label = label.concat(", ").concat(c2s);
+                                        if(automaton instanceof NFA){
+                                            ((NFA)automaton).addTransition(from, to, c2s);
+                                        }
+                            }
+                        }
+                        //Edit transition
+                        HashMap<String, ArrayList<StateController>> aux = afndController.getAutomaton().getF().get(from);
+                        
+                        for(Character c :afndController.getAutomaton().getAlphabet().getCharacters()){
+                            String s = c.toString();
+                            aux.get(s).clear();
+                        }
+                        
+                        text.setText(label);
+                        String[] tran2 = label.split(", ");
+                        
+                        for(String s2 : tran2){
+                            //if (!s.contains(s2))
+                                aux.get(s2).add(to);
+                        }
+                        
+                        
+                        FontLoader fontLoader = Toolkit.getToolkit().getFontLoader();
+                        Font font = text.getFont();
+                        float textWidth = fontLoader.computeStringWidth(label, font);
+                        text.setX(midx-(textWidth/2));
+                        
+                        
+                          
+                    }
+                }
+                
+                afndController.updateTable();
+                
+                /*
                 for (int i = 0; i < transitionString.length; i++)
                 {
                    Character c = transitionString[i].charAt(0); 
@@ -176,7 +244,7 @@ public class TransitionView {
                     //MODIFICAR EL TEXTO DE LA TRANSICION
                     //transitionview.getText.setText();
                 }
-                
+                */
                 
                 /*
                 int i = 0;
@@ -193,13 +261,32 @@ public class TransitionView {
             }
         });
         
-        add.setOnAction(new EventHandler<ActionEvent>()
+        delete.setOnAction(new EventHandler<ActionEvent>()
         {
 
             @Override
             public void handle(ActionEvent event)
             {
+                //Delete from the list of transitions of the linked states
+                to.getStateModel().getToState().remove(tController);
+                from.getStateModel().getFromState().remove(tController);
                 
+                //Delete transition from the list of transitions
+                afndController.transitionsList.remove(tController);
+                afndController.transitionsRedList.remove(tController);
+                
+                //Delete from the logic
+                HashMap<String, ArrayList<StateController>> aux = afndController.getAutomaton().getF().get(from);
+                String[] tran = text.getText().split(", ");
+                for(String s : tran){
+                    aux.get(s).remove(to);
+                }
+                
+                afndController.updateTable();
+                
+                //Delete visually
+                afndController.getGroupTransitions().getChildren().remove(tController.getTransitionView().getTransition());
+                afndController.getGroup().getChildren().remove(tController.getTransitionView().getTransition());
             }
         });
     }
