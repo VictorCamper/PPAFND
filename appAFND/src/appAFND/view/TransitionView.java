@@ -10,10 +10,13 @@ import appAFND.controller.TransitionController;
 import com.sun.javafx.tk.FontLoader;
 import com.sun.javafx.tk.Toolkit;
 import javafx.beans.property.DoubleProperty;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -42,6 +45,7 @@ public class TransitionView {
     private StateController from, to;
     private AFNDController afndController;
     private TransitionController tController;
+    private ContextMenu context= new ContextMenu();
     
     public TransitionView(StateController from, StateController to, String label, double canvasHeight, double canvasWidth, AFNDController afndController){
         this.curve = new QuadCurve();
@@ -50,6 +54,9 @@ public class TransitionView {
         this.from = from;
         this.to = to;
         this.afndController = afndController;
+        MenuItem edit = new MenuItem("edit");
+        MenuItem add = new MenuItem("add");
+        context.getItems().addAll(edit,add);
         
         Circle c1 = this.from.getStateView().getCircle();
         Circle c2 = this.to.getStateView().getCircle();
@@ -119,6 +126,29 @@ public class TransitionView {
         this.arrow = new Arrow(curve, 1f, arrowShape);
         
         this.group.getChildren().addAll(this.curve, this.arrow, this.start, this.center, this.end, this.text);
+        
+        edit.setOnAction(new EventHandler<ActionEvent>()
+        {
+
+            @Override
+            public void handle(ActionEvent event)
+            {
+                // DEBE SER UN ARREGLO XD
+                String texto = afndController.dialogState();
+                System.out.println(texto);
+                //transitionview.getText.setText(texto);
+            }
+        });
+        
+        add.setOnAction(new EventHandler<ActionEvent>()
+        {
+
+            @Override
+            public void handle(ActionEvent event)
+            {
+                
+            }
+        });
     }
 
     public Group getTransition() {
