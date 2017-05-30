@@ -39,7 +39,11 @@ public class StateView implements Comparable<StateView>
         MenuItem changeFinal = new MenuItem("Set/Unset Final");
         MenuItem deleteState = new MenuItem("Delete State");
         MenuItem changeName = new MenuItem("Change Name");
-        context.getItems().addAll(changeFinal,deleteState,changeName);
+        context.getItems().addAll(changeFinal,changeName);
+        
+        if(afndcontroller.getAutomaton().getInitialState()!=null)
+            if(afndcontroller.getAutomaton().getInitialState()!=controller)
+                context.getItems().add(deleteState);
         
         this.afndcontroller = afndcontroller;
         
@@ -101,11 +105,11 @@ public class StateView implements Comparable<StateView>
                 ArrayList<TransitionController> transitions = new ArrayList<>();
                 //transitions.addAll(controller.getStateModel().getFromState());
                 transitions.addAll(controller.getStateModel().getToState());
-                
+
                  for(TransitionController transition : transitions)
                  {
                      StateController from = transition.getTransitionFrom();
-                     System.out.println(from.getStateView().text);
+                     //System.out.println(from.getStateView().text.getText());
                      HashMap<String, ArrayList<StateController>> aux = afndcontroller.getAutomaton().getF().get(from);
                      for(Character word : afndcontroller.getAutomaton().getAlphabet().getCharacters())
                      {
@@ -113,23 +117,23 @@ public class StateView implements Comparable<StateView>
                             aux.get(word.toString()).remove(controller);
                      }
                  }
-                
+
                 afndcontroller.getAutomaton().getF().remove(controller);
                 afndcontroller.getAutomaton().getStates().remove(controller);
-                
+
                 transitions.addAll(controller.getStateModel().getFromState());
                 for(TransitionController transition : transitions)
                 {
-                    afndcontroller.getGroupTransitions().getChildren().remove(transition.getTransitionView().getTransition());
+                    afndcontroller.getGroup().getChildren().remove(transition.getTransitionView().getTransition());
                 }
-                
+
                 afndcontroller.getGroupStates().getChildren().remove(circle);
                 afndcontroller.getGroupStates().getChildren().remove(text);
                 afndcontroller.getGroupStates().getChildren().remove(arrow);
-                
+
                 afndcontroller.updateTable();
                 afndcontroller.removeStateAuxiliar(controller, transitions);
-                
+
                 for(StateController state : afndcontroller.getAutomaton().getStates())
                 {
                     for (TransitionController transition : transitions)
@@ -137,8 +141,9 @@ public class StateView implements Comparable<StateView>
                         state.getStateModel().getToState().remove(transition);
                         //state.getStateModel().getFromState().remove(controller);
                     }
-                    
+
                 }
+                
                     
             }
         });
