@@ -20,6 +20,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
@@ -141,10 +142,28 @@ public class TransitionView {
             @Override
             public void handle(MouseEvent event)
             {
-                if (event.getButton() != MouseButton.PRIMARY)
+                if (event.getButton() == MouseButton.SECONDARY)
                     contextMenu(event);
                 else
                     afndController.transitionClicked(tController);
+            }
+        });
+        
+        this.curve.setOnMouseEntered(new EventHandler<MouseEvent>()
+        {
+            @Override
+            public void handle(MouseEvent event)
+            {
+                ((Node) event.getSource()).setCursor(Cursor.HAND);
+            }
+        });
+        
+        this.curve.setOnMouseExited(new EventHandler<MouseEvent>()
+        {
+            @Override
+            public void handle(MouseEvent event)
+            {
+                ((Node) event.getSource()).setCursor(Cursor.DEFAULT);
             }
         });
         
@@ -215,48 +234,7 @@ public class TransitionView {
                     }
                 }
                 
-                afndController.updateTable();
-                
-                /*
-                for (int i = 0; i < transitionString.length; i++)
-                {
-                   Character c = transitionString[i].charAt(0); 
-                   if(afndController.getAutomaton().getAlphabet().alphabetContains(c))
-                   {
-                       continuee = true;
-                   }
-                   else
-                   {
-                       continuee = false;
-                       //i=transitionString.length;
-                       break;
-                   }
-                }
-                if(!continuee)
-                {
-                    Alert refuse = new Alert(Alert.AlertType.ERROR);
-                    refuse.setTitle("edit error");
-                    refuse.setHeaderText("Edit is not possible");
-                    refuse.showAndWait();
-                }
-                if(continuee)
-                {
-                    //MODIFICAR EL TEXTO DE LA TRANSICION
-                    //transitionview.getText.setText();
-                }
-                */
-                
-                /*
-                int i = 0;
-                while(i<transitionWord.length)
-                {
-                    if(afndController.getAutomaton().getAlphabet().alphabetContains());
-                    {
-                        
-                    }
-                    i++;  
-                }
-                */
+                afndController.updateTable();              
                 
             }
         });
