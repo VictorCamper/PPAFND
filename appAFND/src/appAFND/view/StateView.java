@@ -151,16 +151,32 @@ public class StateView implements Comparable<StateView>
             {
                 Text text2;
                 String label = afndcontroller.dialogState();
-                text2 = new Text(label);
-                FontLoader fontLoader = Toolkit.getToolkit().getFontLoader();
-                Font font = text2.getFont();
-                float labelWidth = fontLoader.computeStringWidth(label, font);
+                Boolean continuee = true;
+                for (StateController state : afndcontroller.getAutomaton().getStates())
+                {
+                    if(state.getStateView().getText().getText().equals(label))
+                    {
+                        Alert refuse = new Alert(Alert.AlertType.ERROR);
+                        refuse.setTitle("Name error");
+                        refuse.setHeaderText("The name is already in use");
+                        refuse.showAndWait();
+                        continuee = false;
+                        break;
+                    }
+                }
+                if(continuee)
+                {
+                    text2 = new Text(label);
+                    FontLoader fontLoader = Toolkit.getToolkit().getFontLoader();
+                    Font font = text2.getFont();
+                    float labelWidth = fontLoader.computeStringWidth(label, font);
 
                 
-                text.setText(text2.getText());
-                text.setX(x - (labelWidth / 2));
-                text.setY(y + 4);
-                afndcontroller.updateTable();
+                    text.setText(text2.getText());
+                    text.setX(x - (labelWidth / 2));
+                    text.setY(y + 4);
+                    afndcontroller.updateTable();
+                }
             }
                 
             
