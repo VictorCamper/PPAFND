@@ -144,8 +144,8 @@ public class TransitionView {
             {
                 if (event.getButton() == MouseButton.SECONDARY)
                     contextMenu(event);
-                else
-                    afndController.transitionClicked(tController);
+                /*else
+                    afndController.transitionClicked(tController);*/
             }
         });
         
@@ -196,14 +196,14 @@ public class TransitionView {
                                 if(label.isEmpty()){                                
                                     label = label.concat(c2s);
                                     if(automaton instanceof NFA){
-                                        ((NFA)automaton).addTransition(from, to, c2s);
+                                        //((NFA)automaton).addTransition(from, to, c2s);
                                     }
                                 }
                                 else
                                     if (!label.contains(c2s))
                                         label = label.concat(", ").concat(c2s);
                                         if(automaton instanceof NFA){
-                                            ((NFA)automaton).addTransition(from, to, c2s);
+                                            //((NFA)automaton).addTransition(from, to, c2s);
                                         }
                             }
                         }

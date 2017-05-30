@@ -159,32 +159,34 @@ public class StateView implements Comparable<StateView>
             public void handle(ActionEvent event)
             {
                 Text text2;
-                String label = afndcontroller.dialogState();
+                String label = afndcontroller.dialogState("Modify");
                 Boolean continuee = true;
-                for (StateController state : afndcontroller.getAutomaton().getStates())
-                {
-                    if(state.getStateView().getText().getText().equals(label))
+                if(!label.isEmpty()){
+                    for (StateController state : afndcontroller.getAutomaton().getStates())
                     {
-                        Alert refuse = new Alert(Alert.AlertType.ERROR);
-                        refuse.setTitle("Name error");
-                        refuse.setHeaderText("The name is already in use");
-                        refuse.showAndWait();
-                        continuee = false;
-                        break;
+                        if(state.getStateView().getText().getText().equals(label))
+                        {
+                            Alert refuse = new Alert(Alert.AlertType.ERROR);
+                            refuse.setTitle("Name error");
+                            refuse.setHeaderText("The name is already in use");
+                            refuse.showAndWait();
+                            continuee = false;
+                            break;
+                        }
                     }
-                }
-                if(continuee)
-                {
-                    text2 = new Text(label);
-                    FontLoader fontLoader = Toolkit.getToolkit().getFontLoader();
-                    Font font = text2.getFont();
-                    float labelWidth = fontLoader.computeStringWidth(label, font);
+                    if(continuee)
+                    {
+                        text2 = new Text(label);
+                        FontLoader fontLoader = Toolkit.getToolkit().getFontLoader();
+                        Font font = text2.getFont();
+                        float labelWidth = fontLoader.computeStringWidth(label, font);
 
-                
-                    text.setText(text2.getText());
-                    text.setX(x - (labelWidth / 2));
-                    text.setY(y + 4);
-                    afndcontroller.updateTable();
+
+                        text.setText(text2.getText());
+                        text.setX(x - (labelWidth / 2));
+                        text.setY(y + 4);
+                        afndcontroller.updateTable();
+                    }
                 }
             }
                 
