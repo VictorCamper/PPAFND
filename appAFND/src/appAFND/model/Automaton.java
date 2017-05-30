@@ -138,9 +138,16 @@ public abstract class Automaton {
             {
                 //System.out.println("hola");
                 ArrayList<StateController> nuevosaux = new ArrayList();
-                for(StateController nuevo : nuevos){
+                for(StateController nuevo : nuevos){                    
                     if(!(f.get(nuevo).get("\u03BB").isEmpty())){
-                        nuevosaux.addAll(f.get(nuevo).get("\u03BB"));
+                        if(f.get(nuevo).get("\u03BB").contains(nuevo)){
+                            for(StateController s :f.get(nuevo).get("\u03BB")){
+                                if(s.compareTo(nuevo)!=0)
+                                    nuevosaux.add(s);
+                            }
+                        }
+                        else
+                            nuevosaux.addAll(f.get(nuevo).get("\u03BB"));
                     }
                 }
                 //La lista de nuevos = nuevosaux
