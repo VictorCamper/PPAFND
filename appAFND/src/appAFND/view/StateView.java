@@ -9,6 +9,7 @@ import java.util.HashMap;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Group;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.MouseButton;
@@ -37,7 +38,8 @@ public class StateView implements Comparable<StateView>
     {        
         MenuItem changeFinal = new MenuItem("Set/Unset Final");
         MenuItem deleteState = new MenuItem("Delete State");
-        context.getItems().addAll(changeFinal,deleteState);
+        MenuItem changeName = new MenuItem("Change Name");
+        context.getItems().addAll(changeFinal,deleteState,changeName);
         
         this.afndcontroller = afndcontroller;
         
@@ -141,6 +143,29 @@ public class StateView implements Comparable<StateView>
             }
         });
         
+        changeName.setOnAction(new EventHandler<ActionEvent>()
+        {
+
+            @Override
+            public void handle(ActionEvent event)
+            {
+                Text text;
+                String label = afndcontroller.dialogState();
+                text = new Text(label);
+                FontLoader fontLoader = Toolkit.getToolkit().getFontLoader();
+                Font font = text.getFont();
+                float labelWidth = fontLoader.computeStringWidth(label, font);
+
+                text.setX(x - (labelWidth / 2));
+                text.setY(y + 4);
+                text.setWrappingWidth(radius * 2);
+                getText().setText(text.toString());
+                afndcontroller.updateTable();
+            }
+                
+            
+        });
+        
     }
 
     public void setController(StateController controller) {
@@ -180,6 +205,11 @@ public class StateView implements Comparable<StateView>
     
     public Circle getCircle(){
         return this.circle;
+    }
+    
+    public void setText(String name)
+    {
+        this.text.setText(name);
     }
     
     public Text getText(){

@@ -575,8 +575,7 @@ public class AFNDController implements Initializable
             }
         }
     }
-
-    private String dialogState() {
+    String dialogState() {
         // Create the custom dialog.
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("New state");
