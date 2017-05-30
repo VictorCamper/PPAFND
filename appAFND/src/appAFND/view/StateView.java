@@ -35,6 +35,7 @@ public class StateView implements Comparable<StateView>
 
     public StateView(AFNDController afndcontroller, double x, double y, double radius, String name)
     {        
+        this.arrow = null;
         MenuItem changeFinal = new MenuItem("Set/Unset Final");
         MenuItem deleteState = new MenuItem("Delete State");
         context.getItems().addAll(changeFinal,deleteState);
@@ -96,6 +97,8 @@ public class StateView implements Comparable<StateView>
             @Override
             public void handle(ActionEvent event)
             {
+                if(arrow != null)
+                    return;
                 ArrayList<TransitionController> transitions = new ArrayList<>();
                 //transitions.addAll(controller.getStateModel().getFromState());
                 transitions.addAll(controller.getStateModel().getToState());
