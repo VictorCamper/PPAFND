@@ -643,7 +643,7 @@ public class AFNDController implements Initializable
         });*/
     }
 
-    private String[] dialogTransition() {
+    String[] dialogTransition() {
         // Create the custom dialog.
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("New transition");
@@ -1317,6 +1317,11 @@ public class AFNDController implements Initializable
         this.statesRedList.remove(state);
         this.transitionsList.removeAll(transitions);
         this.transitionsRedList.removeAll(transitions);
+    }
+
+    void stateClicked(TransitionController tController)
+    {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

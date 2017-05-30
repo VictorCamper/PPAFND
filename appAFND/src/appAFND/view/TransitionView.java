@@ -9,14 +9,17 @@ import appAFND.controller.StateController;
 import appAFND.controller.TransitionController;
 import com.sun.javafx.tk.FontLoader;
 import com.sun.javafx.tk.Toolkit;
+import java.util.ArrayList;
 import javafx.beans.property.DoubleProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -127,16 +130,66 @@ public class TransitionView {
         
         this.group.getChildren().addAll(this.curve, this.arrow, this.start, this.center, this.end, this.text);
         
+        this.curve.setOnMouseClicked(new EventHandler<MouseEvent>()
+        {
+            @Override
+            public void handle(MouseEvent event)
+            {
+                if (event.getButton() == MouseButton.PRIMARY){
+                    afndController.stateClicked(tController);
+                }
+                contextMenu(event);
+            }
+        });
+        
         edit.setOnAction(new EventHandler<ActionEvent>()
         {
 
             @Override
             public void handle(ActionEvent event)
             {
-                // DEBE SER UN ARREGLO XD
-                String texto = afndController.dialogState();
-                System.out.println(texto);
-                //transitionview.getText.setText(texto);
+                boolean continuee = false;
+                String[] transitionString = afndController.dialogTransition();
+                for (int i = 0; i < transitionString.length; i++)
+                {
+                   Character c = transitionString[i].charAt(0); 
+                   if(afndController.getAutomaton().getAlphabet().alphabetContains(c))
+                   {
+                       continuee = true;
+                   }
+                   else
+                   {
+                       continuee = false;
+                       //i=transitionString.length;
+                       break;
+                   }
+                }
+                if(!continuee)
+                {
+                    Alert refuse = new Alert(Alert.AlertType.ERROR);
+                    refuse.setTitle("edit error");
+                    refuse.setHeaderText("Edit is not possible");
+                    refuse.showAndWait();
+                }
+                if(continuee)
+                {
+                    //MODIFICAR EL TEXTO DE LA TRANSICION
+                    //transitionview.getText.setText();
+                }
+                
+                
+                /*
+                int i = 0;
+                while(i<transitionWord.length)
+                {
+                    if(afndController.getAutomaton().getAlphabet().alphabetContains());
+                    {
+                        
+                    }
+                    i++;  
+                }
+                */
+                
             }
         });
         
@@ -150,7 +203,20 @@ public class TransitionView {
             }
         });
     }
-
+    
+    private void contextMenu(MouseEvent event)
+    {
+        if (event.getButton() == MouseButton.SECONDARY)
+        {
+            double x = event.getScreenX();
+            double y = event.getScreenY();
+            context.show(curve, x, y);
+        } else
+        {
+            context.hide();
+        }
+    }
+    
     public Group getTransition() {
         return this.group;
     }
