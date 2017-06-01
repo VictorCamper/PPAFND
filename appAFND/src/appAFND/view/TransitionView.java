@@ -212,7 +212,7 @@ public class TransitionView {
                         
                         for(Character c :afndController.getAutomaton().getAlphabet().getCharacters()){
                             String s = c.toString();
-                            aux.get(s).clear();
+                            aux.get(s).remove(to);
                         }
                         
                         text.setText(label);
