@@ -583,14 +583,14 @@ public class AFNDController implements Initializable
             }
         }
     }
-    String dialogState() {
+    String dialogState(String s) {
         // Create the custom dialog.
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("New state");
         dialog.setHeaderText("Introduce the name of the new state");
 
         // Set the button types.
-        ButtonType loginButtonType = new ButtonType("Create", ButtonData.OK_DONE);
+        ButtonType loginButtonType = new ButtonType(s, ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
 
         // Create the username and password labels and fields.
@@ -733,7 +733,7 @@ public class AFNDController implements Initializable
             return false;
         }
         
-        for(StateController s : statesList){            
+        /*for(StateController s : statesList){            
             if(s.compareTo(automaton.getInitialState())!=0 && s.getStateModel().toStateEmpty()){
                 Alert result = new Alert(Alert.AlertType.ERROR);
                 result.setTitle("State error");
@@ -743,7 +743,7 @@ public class AFNDController implements Initializable
                 return false;
             }
                 
-        }
+        }*/
         
         if(!transitionsRedList.isEmpty()){
             Alert result = new Alert(Alert.AlertType.ERROR);
@@ -765,12 +765,10 @@ public class AFNDController implements Initializable
         
         String sp = null;
         Dijkstra d = new Dijkstra(automaton);
-        try{            
-            d.sp();
-            sp = d.getShortestWord();
-        }
-        catch(Exception e){
-        }
+               
+        d.sp();
+        sp = d.getShortestWord();
+        
         if(automaton.getInitialState()==null){
             Alert result = new Alert(Alert.AlertType.ERROR);
             result.setTitle("Initial state error");
@@ -778,14 +776,6 @@ public class AFNDController implements Initializable
             result.showAndWait();
             return false;
         }
-        
-        /*else if(automaton.getFinalStates().contains(automaton.getInitialState())){
-            Alert result = new Alert(Alert.AlertType.INFORMATION);
-            result.setTitle("Word accepted");
-            result.setHeaderText("The word was accepted!");
-            result.showAndWait();
-            return true;
-        }*/
         
         else if(!d.isExistPath())
         {
@@ -795,6 +785,7 @@ public class AFNDController implements Initializable
             shortest.showAndWait();
             return false;
         }   
+        
         else if(sp.isEmpty() && wordField.getText().isEmpty())
         {
             Alert shortest = new Alert(Alert.AlertType.INFORMATION);
@@ -830,7 +821,8 @@ public class AFNDController implements Initializable
             return;
         }
         
-        for(StateController s : statesList){            
+        
+        /*for(StateController s : statesList){            
             if(s.compareTo(automaton.getInitialState())!=0 && s.getStateModel().toStateEmpty()){
                 Alert result = new Alert(Alert.AlertType.ERROR);
                 result.setTitle("State error");
@@ -840,7 +832,7 @@ public class AFNDController implements Initializable
                 return;
             }
                 
-        }
+        }*/
         
         if(!transitionsRedList.isEmpty()){
             Alert result = new Alert(Alert.AlertType.ERROR);
@@ -862,26 +854,17 @@ public class AFNDController implements Initializable
         
         String sp = null;
         Dijkstra d = new Dijkstra(automaton);
-        try{
-            
-            d.sp();
-            sp = d.getShortestWord();
-        }
-        catch(Exception e){
-        }
+
+        d.sp();
+        sp = d.getShortestWord();
+
         if(automaton.getInitialState()==null){
             Alert shortest = new Alert(Alert.AlertType.ERROR);
             shortest.setTitle("Initial state error");
             shortest.setHeaderText("There is no initial state");
             shortest.showAndWait();
         }
-        /*else if(automaton.getFinalStates().contains(automaton.getInitialState())){
-            Alert shortest = new Alert(Alert.AlertType.INFORMATION);
-            shortest.setTitle("Shotest path");
-            shortest.setHeaderText("This automaton accepts any word");
-            shortest.setContentText("The shortest path is: \"\" ");
-            shortest.showAndWait();
-        }*/
+        
         else if(!d.isExistPath())
         {
             Alert shortest = new Alert(Alert.AlertType.ERROR);
@@ -1326,9 +1309,6 @@ public class AFNDController implements Initializable
         this.transitionsRedList.removeAll(transitions);
     }
 
-    void transitionClicked(TransitionController tController)
-    {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+
     
 }

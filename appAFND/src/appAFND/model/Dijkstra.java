@@ -184,7 +184,7 @@ public class Dijkstra
         
         for (int i = 0; i < this.n; i++)
         {
-            if((this.sp[i] < min) && (this.r[i] == false))
+            if((this.sp[i] <= min) && (this.r[i] == false))
             {
                 min = this.sp[i];
                 index = i;

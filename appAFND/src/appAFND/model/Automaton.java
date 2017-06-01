@@ -124,8 +124,8 @@ public abstract class Automaton {
             }            
         }
         
-        ArrayList<StateController> activos = new ArrayList();
-        ArrayList<StateController> nuevos = new ArrayList();
+        ArrayList<StateController> activos = new ArrayList<>();
+        ArrayList<StateController> nuevos = new ArrayList<>();
 
         activos.add(initialState);
         nuevos.add(initialState);
