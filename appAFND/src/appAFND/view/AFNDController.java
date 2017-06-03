@@ -36,7 +36,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -50,12 +52,16 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.Slider;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.QuadCurve;
@@ -120,13 +126,11 @@ public class AFNDController implements Initializable
     @FXML
     private Button buttonRedo;
     @FXML
-    private ComboBox<?> comboZoom;
-    @FXML
     private SplitPane splitPane;
     
     private SpreadsheetView spreadSheet;
     
-    private Group group = new Group();
+    private Pane automatonPane = new Pane();
     private Group groupStates = new Group();
     private Group groupTransitions = new Group();
     private Rectangle canvas = new Rectangle(0, 0, 0, 0);
@@ -151,6 +155,8 @@ public class AFNDController implements Initializable
     private Button buttonExecute;
 
     int stateCounter;
+    @FXML
+    private Slider sliderZoom;
     /**
      * Initializes the controller class.
      */
@@ -170,13 +176,62 @@ public class AFNDController implements Initializable
         this.canvas.setWidth(this.canvasWidth);
         this.canvas.setFill(Color.WHITE);
         
-        this.group.getChildren().add(this.canvas);
-        this.group.getChildren().add(this.groupStates);
-        this.group.getChildren().add(this.groupTransitions);
+        this.automatonPane.getChildren().add(this.canvas);
+        this.automatonPane.getChildren().add(this.groupStates);
+        this.automatonPane.getChildren().add(this.groupTransitions);
         
+        Group group = new Group(automatonPane);
+
+        // stackpane for centering the content, in case the ScrollPane viewport
+        // is larger than zoomTarget
+        StackPane content = new StackPane(group);
+        group.layoutBoundsProperty().addListener((observable, oldBounds, newBounds) -> {
+            // keep it at least as large as the content
+            content.setMinWidth(newBounds.getWidth());
+            content.setMinHeight(newBounds.getHeight());
+        });
         
-        this.scrollPane.setContent(this.group);
+        this.scrollPane.setContent(content);
         
+        scrollPane.viewportBoundsProperty().addListener((observable, oldBounds, newBounds) -> {
+            // use vieport size, if not too small for zoomTarget
+            content.setPrefSize(newBounds.getWidth(), newBounds.getHeight());
+        });
+        
+        sliderZoom.valueProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                final double zoomFactor = newValue.doubleValue()/oldValue.doubleValue();
+
+                Bounds groupBounds = group.getLayoutBounds();
+                final Bounds viewportBounds = scrollPane.getViewportBounds();
+
+                // calculate pixel offsets from [0, 1] range
+                double valX = scrollPane.getHvalue() * (groupBounds.getWidth() - viewportBounds.getWidth());
+                double valY = scrollPane.getVvalue() * (groupBounds.getHeight() - viewportBounds.getHeight());
+
+                // convert content coordinates to zoomTarget coordinates
+                double hRel = scrollPane.getHvalue() / scrollPane.getHmax();
+                double vRel = scrollPane.getVvalue() / scrollPane.getVmax();
+                Point2D posInZoomTarget = automatonPane.parentToLocal(group.parentToLocal(new Point2D(((groupBounds.getWidth() - viewportBounds.getWidth()) * hRel) + viewportBounds.getWidth() / 2, ((groupBounds.getHeight() - viewportBounds.getHeight()) * vRel) + viewportBounds.getHeight() / 2)));
+
+                // calculate adjustment of scroll position (pixels)
+                Point2D adjustment = automatonPane.getLocalToParentTransform().deltaTransform(posInZoomTarget.multiply(zoomFactor - 1));
+
+                // do the resizing
+                automatonPane.setScaleX(zoomFactor * automatonPane.getScaleX());
+                automatonPane.setScaleY(zoomFactor * automatonPane.getScaleY());
+
+                // refresh ScrollPane scroll positions & content bounds
+                scrollPane.layout();
+
+                // convert back to [0, 1] range
+                // (too large/small values are automatically corrected by ScrollPane)
+                groupBounds = group.getLayoutBounds();
+                scrollPane.setHvalue((valX + adjustment.getX()) / (groupBounds.getWidth() - viewportBounds.getWidth()));
+                scrollPane.setVvalue((valY + adjustment.getY()) / (groupBounds.getHeight() - viewportBounds.getHeight()));
+            }
+        });       
         
         //this.automaton = new NFA();
         
@@ -200,9 +255,6 @@ public class AFNDController implements Initializable
         this.updateTable();
     }
 
-    @FXML
-    private void zoom(ActionEvent event) {
-    }
 
     @FXML
     private void selectEdit(ActionEvent event) {
@@ -282,21 +334,21 @@ public class AFNDController implements Initializable
                         }
                     }
                     
-                    if(!overlapped){
+                    /*if(!overlapped){
                         if (intersectionNewState(stateController))
                             overlapped = true;
-                    }
+                    }*/
                     
-                    if(overlapped){
+                    /*if(overlapped){
                         Alert overlaped = new Alert(Alert.AlertType.ERROR);
                         overlaped.setTitle("State error");
                         overlaped.setHeaderText("You can't make a state here");
                         overlaped.setContentText("Is not possible to make a state over a existing state or over a existing transition or out of the canvas");
                         overlaped.showAndWait();
-                    }
+                    }*/
                     
                     //Draw state
-                    else {
+                    //else {
                         //Create dialog to set the name of the state
 
                         //Draw state
@@ -320,7 +372,7 @@ public class AFNDController implements Initializable
                         //Update table
                         this.stateCounter++;
                         this.updateTable();                        
-                    }
+                    //}
                 }
                 break;
             case "Transition":
@@ -929,11 +981,11 @@ public class AFNDController implements Initializable
         
         long featuresState = getFeatures(g1);
         
-        long featuresCanvas = getFeatures(group);
+        long featuresCanvas = getFeatures(automatonPane);
         
-        group.getChildren().add(circleState);
-        long featuresTotal = getFeatures(group);
-        group.getChildren().remove(circleState);
+        automatonPane.getChildren().add(circleState);
+        long featuresTotal = getFeatures(automatonPane);
+        automatonPane.getChildren().remove(circleState);
         
         if(featuresTotal != featuresState+featuresCanvas){
             /*System.out.println("Total: "+featuresTotal);
@@ -993,12 +1045,12 @@ public class AFNDController implements Initializable
         long featuresTransition = getFeatures(g1);  
         g1.getChildren().remove(curveTransition);
         long featuresStates = getFeatures(g1); 
-        long featuresCanvas = getFeatures(group);
+        long featuresCanvas = getFeatures(automatonPane);
         
         
-        group.getChildren().add(curveTransition);
-        long featuresTotal = getFeatures(group);
-        group.getChildren().remove(curveTransition);
+        automatonPane.getChildren().add(curveTransition);
+        long featuresTotal = getFeatures(automatonPane);
+        automatonPane.getChildren().remove(curveTransition);
         
         
         
@@ -1117,8 +1169,8 @@ public class AFNDController implements Initializable
         Group g4 = new Group(r,circleFrom,circleTo,textFrom,textTo,curveTransition);
         
         //todo menos transicion
-        group.getChildren().remove(tview.getTransition());
-        long featuresCanvas = getFeatures(group);
+        automatonPane.getChildren().remove(tview.getTransition());
+        long featuresCanvas = getFeatures(automatonPane);
         
         //transicion con circulos - circulos
         long featuresTransition = getFeatures(g4);
@@ -1126,10 +1178,10 @@ public class AFNDController implements Initializable
         featuresTransition -= getFeatures(g4);
         
         //todo con curva transicion
-        group.getChildren().add(curveTransition);
-        long featuresTotal = getFeatures(group);
-        group.getChildren().remove(curveTransition);
-        group.getChildren().add(tview.getTransition());
+        automatonPane.getChildren().add(curveTransition);
+        long featuresTotal = getFeatures(automatonPane);
+        automatonPane.getChildren().remove(curveTransition);
+        automatonPane.getChildren().add(tview.getTransition());
         
         
         if(featuresTotal != (featuresTransition)+featuresCanvas){
@@ -1262,23 +1314,23 @@ public class AFNDController implements Initializable
 
             //Muestra una imagen en una ventana nueva con los vertices detectados 
             
-            /*Mat c = new Mat(); drawKeypoints(image2, keyPoints, c, new Scalar(0, 0, 255, 0), DrawMatchesFlags.DEFAULT); 
+            Mat c = new Mat(); drawKeypoints(image2, keyPoints, c, new Scalar(0, 0, 255, 0), DrawMatchesFlags.DEFAULT); 
             OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat(); 
             CanvasFrame canvasFrame = new CanvasFrame("hola", 1); canvasFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); 
-            canvasFrame.showImage(converter.convert(c));*/
+            canvasFrame.showImage(converter.convert(c));
 
             //Cantidad de vertices detectados 
              return keyPoints.size();
     }
 
-    public Group getGroup()
+    public Pane getAutomatonPane()
     {
-        return group;
+        return automatonPane;
     }
 
-    public void setGroup(Group group)
+    public void setAutomatonPane(Pane group)
     {
-        this.group = group;
+        this.automatonPane = group;
     }
 
     public Group getGroupStates()

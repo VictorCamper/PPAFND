@@ -264,7 +264,7 @@ public class TransitionView {
                 
                 //Delete visually
                 afndController.getGroupTransitions().getChildren().remove(tController.getTransitionView().getTransition());
-                afndController.getGroup().getChildren().remove(tController.getTransitionView().getTransition());
+                afndController.getAutomatonPane().getChildren().remove(tController.getTransitionView().getTransition());
             }
         });
     }

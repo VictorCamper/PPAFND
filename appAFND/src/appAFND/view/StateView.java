@@ -128,7 +128,7 @@ public class StateView implements Comparable<StateView>
                 for(TransitionController transition : transitions)
                 {
                     afndcontroller.getGroupTransitions().getChildren().remove(transition.getTransitionView().getTransition());
-                    afndcontroller.getGroup().getChildren().remove(transition.getTransitionView().getTransition());
+                    afndcontroller.getAutomatonPane().getChildren().remove(transition.getTransitionView().getTransition());
                 }
 
                 afndcontroller.getGroupStates().getChildren().remove(circle);
