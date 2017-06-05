@@ -1055,39 +1055,78 @@ public class AFNDController implements Initializable
         StateController from = t.getTransitionFrom();
         StateController to = t.getTransitionTo();
         
-        if(interFrom.getBoundsInLocal().getWidth()>3){
-            if(!statesRedList.contains(from))
-                statesRedList.add(from);
-            from.getStateView().getCircle().setFill(colorStateIntersect);
-            from.getStateView().getCircle().setStroke(colorStateIntersect);
-            return true;
-        }
-        else{
-            if(statesRedList.contains(from))
-                statesRedList.remove(from);
-            from.getStateView().getCircle().setFill(colorState);
-            if(automaton.getFinalStates().contains(from))
-                from.getStateView().getCircle().setStroke(colorStateFinal);
-            else
-                from.getStateView().getCircle().setStroke(colorState);
+        if(from==to){
+            if(interFrom.getBoundsInLocal().getHeight()>20){
+                if(!statesRedList.contains(from))
+                    statesRedList.add(from);
+                from.getStateView().getCircle().setFill(colorStateIntersect);
+                from.getStateView().getCircle().setStroke(colorStateIntersect);
+                return true;
+            }
+            else{
+                if(statesRedList.contains(from))
+                    statesRedList.remove(from);
+                from.getStateView().getCircle().setFill(colorState);
+                if(automaton.getFinalStates().contains(from))
+                    from.getStateView().getCircle().setStroke(colorStateFinal);
+                else
+                    from.getStateView().getCircle().setStroke(colorState);
+            }
+
+            if(interTo.getBoundsInLocal().getHeight()>20){
+                if(!statesRedList.contains(to))
+                    statesRedList.add(to);
+                to.getStateView().getCircle().setFill(colorStateIntersect);
+                to.getStateView().getCircle().setStroke(colorStateIntersect);
+                return true;
+            }
+            else{
+                if(statesRedList.contains(to))
+                    statesRedList.remove(to);
+                to.getStateView().getCircle().setFill(colorState);
+                if(automaton.getFinalStates().contains(to))
+                    to.getStateView().getCircle().setStroke(colorStateFinal);
+                else
+                    to.getStateView().getCircle().setStroke(colorState);
+            }
         }
         
-        if(interTo.getBoundsInLocal().getWidth()>3){
-            if(!statesRedList.contains(to))
-                statesRedList.add(to);
-            to.getStateView().getCircle().setFill(colorStateIntersect);
-            to.getStateView().getCircle().setStroke(colorStateIntersect);
-            return true;
-        }
         else{
-            if(statesRedList.contains(to))
-                statesRedList.remove(to);
-            to.getStateView().getCircle().setFill(colorState);
-            if(automaton.getFinalStates().contains(to))
-                to.getStateView().getCircle().setStroke(colorStateFinal);
-            else
-                to.getStateView().getCircle().setStroke(colorState);
+            if(interFrom.getBoundsInLocal().getWidth()>3){
+                if(!statesRedList.contains(from))
+                    statesRedList.add(from);
+                from.getStateView().getCircle().setFill(colorStateIntersect);
+                from.getStateView().getCircle().setStroke(colorStateIntersect);
+                return true;
+            }
+            else{
+                if(statesRedList.contains(from))
+                    statesRedList.remove(from);
+                from.getStateView().getCircle().setFill(colorState);
+                if(automaton.getFinalStates().contains(from))
+                    from.getStateView().getCircle().setStroke(colorStateFinal);
+                else
+                    from.getStateView().getCircle().setStroke(colorState);
+            }
+
+            if(interTo.getBoundsInLocal().getWidth()>3){
+                if(!statesRedList.contains(to))
+                    statesRedList.add(to);
+                to.getStateView().getCircle().setFill(colorStateIntersect);
+                to.getStateView().getCircle().setStroke(colorStateIntersect);
+                return true;
+            }
+            else{
+                if(statesRedList.contains(to))
+                    statesRedList.remove(to);
+                to.getStateView().getCircle().setFill(colorState);
+                if(automaton.getFinalStates().contains(to))
+                    to.getStateView().getCircle().setStroke(colorStateFinal);
+                else
+                    to.getStateView().getCircle().setStroke(colorState);
+            }
         }
+        
         
         //Subtract the intersection of the transition with the asociated states
         transitionLine = Shape.subtract(transitionLine, circles);
