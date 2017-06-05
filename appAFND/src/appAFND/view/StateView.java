@@ -102,6 +102,9 @@ public class StateView implements Comparable<StateView>
             @Override
             public void handle(ActionEvent event)
             {
+                //Delete state from the intersections shape
+                afndcontroller.intersectionDeleteState(controller);
+                
                 afndcontroller.statesList.remove(controller);
                 afndcontroller.statesRedList.remove(controller);
                 
@@ -200,13 +203,15 @@ public class StateView implements Comparable<StateView>
     }
     private void isNotFinalNodo()
     {
-        circle.setStroke(Color.DEEPSKYBLUE);
+        if(!afndcontroller.statesRedList.contains(controller))  
+            circle.setStroke(Color.DEEPSKYBLUE);
         afndcontroller.getAutomaton().getFinalStates().remove(controller);
         afndcontroller.updateTable();
     }
     private void isFinalNodo()
     {
-        circle.setStroke(Color.web("#006485"));
+        if(!afndcontroller.statesRedList.contains(controller))            
+            circle.setStroke(Color.web("#006485"));  
         afndcontroller.getAutomaton().getFinalStates().add(controller);
         afndcontroller.updateTable();
     }
