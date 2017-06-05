@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.input.KeyCodeCombination?>
@@ -58,20 +58,8 @@
       </MenuBar>
       <ToolBar prefHeight="40.0" prefWidth="200.0">
          <items>
-            <Button fx:id="buttonMove" mnemonicParsing="false" onAction="#selectEdit" text="Edit">
-               <tooltip>
-                  <Tooltip text="Edit states and transitions" />
-               </tooltip></Button>
-            <Button fx:id="buttonState" mnemonicParsing="false" onAction="#selectState" text="State">
-               <tooltip>
-                  <Tooltip text="Draw states" />
-               </tooltip>
-            </Button>
-            <Button fx:id="buttonTransition" mnemonicParsing="false" onAction="#selectTransition" text="Trans">
-               <tooltip>
-                  <Tooltip text="Draw transitions" />
-               </tooltip>
-            </Button>
+            <ToggleButton fx:id="buttonState" mnemonicParsing="false" onAction="#selectState" text="State" />
+            <ToggleButton fx:id="buttonTransition" mnemonicParsing="false" onAction="#selectTransition" text="Trans" />
             <Separator orientation="VERTICAL" />
             <Button fx:id="buttonUndo" mnemonicParsing="false" onAction="#undo" text="Undo">
                <tooltip>
@@ -83,14 +71,10 @@
                </tooltip></Button>
             <Separator orientation="VERTICAL" />
             <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Zoom:" />
-            <ComboBox fx:id="comboZoom" onAction="#zoom" prefHeight="25.0" prefWidth="71.0">
-               <cursor>
-                  <Cursor fx:constant="HAND" />
-               </cursor>
-            </ComboBox>
+            <Slider fx:id="sliderZoom" blockIncrement="25.0" max="250.0" min="25.0" minorTickCount="5" prefHeight="38.0" prefWidth="203.0" showTickLabels="true" showTickMarks="true" value="100.0" />
             <Separator orientation="VERTICAL" />
             <TextField fx:id="wordField" promptText="Word" />
-            <Button fx:id="buttonExecute" alignment="CENTER_RIGHT" mnemonicParsing="false" onAction="#readWord" text="Execute">
+            <Button fx:id="buttonExecute" alignment="CENTER_RIGHT" mnemonicParsing="false" onAction="#readWord" text="Read">
                <opaqueInsets>
                   <Insets right="10.0" />
                </opaqueInsets>
