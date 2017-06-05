@@ -245,6 +245,9 @@ public class TransitionView {
             @Override
             public void handle(ActionEvent event)
             {
+                //Delete from the intersections shape
+                afndController.intersectionDeleteTransition(tController);
+                
                 //Delete from the list of transitions of the linked states
                 to.getStateModel().getToState().remove(tController);
                 from.getStateModel().getFromState().remove(tController);
@@ -450,13 +453,14 @@ public class TransitionView {
                     dragDelta.x = getCenterX() - mouseEvent.getX();
                     dragDelta.y = getCenterY() - mouseEvent.getY();
                     getScene().setCursor(Cursor.CLOSED_HAND);
+                    afndController.intersectionDeleteTransition(t.getTransitionController());
                 }
             });
             setOnMouseReleased(new EventHandler<MouseEvent>() {
                 @Override
                 public void handle(MouseEvent mouseEvent) {
                     getScene().setCursor(Cursor.OPEN_HAND);
-                    if(afndController.intersectionMoveTransition(t))
+                    if(afndController.intersectionAddTransition(t.getTransitionController()))
                         t.setRed();                    
                     else
                         t.setBlue();
@@ -557,13 +561,14 @@ public class TransitionView {
                     dragDelta.x = getCenterX() - mouseEvent.getX();
                     dragDelta.y = getCenterY() - mouseEvent.getY();
                     getScene().setCursor(Cursor.CLOSED_HAND);
+                    afndController.intersectionDeleteTransition(t.getTransitionController());
                 }
             });
             setOnMouseReleased(new EventHandler<MouseEvent>() {
                 @Override
                 public void handle(MouseEvent mouseEvent) {
                     getScene().setCursor(Cursor.OPEN_HAND);
-                    if(afndController.intersectionMoveTransition(t))
+                    if(afndController.intersectionAddTransition(t.getTransitionController()))
                         t.setRed();                    
                     else
                         t.setBlue();
