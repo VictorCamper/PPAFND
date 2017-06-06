@@ -23,8 +23,6 @@ import appAFND.model.Dijkstra;
 import appAFND.model.NFA;
 import appAFND.model.State;
 import appAFND.model.Transition;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
@@ -35,15 +33,11 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
-import javafx.scene.Cursor;
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar.ButtonData;
@@ -61,33 +55,16 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.WritableImage;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.MoveTo;
-import javafx.scene.shape.Path;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.QuadCurve;
-import javafx.scene.shape.QuadCurveTo;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
-import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.util.Pair;
-import javax.imageio.ImageIO;
-import javax.swing.JFrame;
-import org.bytedeco.javacpp.opencv_core.KeyPointVector;
-import org.bytedeco.javacpp.opencv_core.Mat;
-import org.bytedeco.javacpp.opencv_core.Scalar;
-import org.bytedeco.javacpp.opencv_features2d.DrawMatchesFlags;
-import org.bytedeco.javacpp.opencv_features2d.FastFeatureDetector;
-import static org.bytedeco.javacpp.opencv_features2d.drawKeypoints;
-import static org.bytedeco.javacpp.opencv_imgcodecs.IMREAD_COLOR;
-import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
-import org.bytedeco.javacv.CanvasFrame;
-import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.controlsfx.control.spreadsheet.GridBase;
 import org.controlsfx.control.spreadsheet.SpreadsheetCell;
 import org.controlsfx.control.spreadsheet.SpreadsheetCellType;
@@ -148,8 +125,8 @@ public class AFNDController implements Initializable
     private StateController transitionStateFrom;
     private StateController transitionStateTo;
     
-    private FastFeatureDetector ffd;
-    private KeyPointVector keyPoints;
+    /*private FastFeatureDetector ffd;
+    private KeyPointVector keyPoints;*/
     
     @FXML
     private TabPane tabPane;
@@ -178,8 +155,8 @@ public class AFNDController implements Initializable
         this.stateCounter = 0;        
         this.transitionClickCounter = 0;
         
-        this.ffd = FastFeatureDetector.create(10/* threshold for detection */, true /* non-max suppression */, FastFeatureDetector.TYPE_9_16); 
-        this.keyPoints = new KeyPointVector(); 
+        //this.ffd = FastFeatureDetector.create(10/* threshold for detection */, true /* non-max suppression */, FastFeatureDetector.TYPE_9_16); 
+        //this.keyPoints = new KeyPointVector(); 
         
         this.canvasWidth = 1200;
         this.canvasHeight = 800;
@@ -358,7 +335,7 @@ public class AFNDController implements Initializable
                         Alert overlaped = new Alert(Alert.AlertType.ERROR);
                         overlaped.setTitle("State error");
                         overlaped.setHeaderText("You can't make a state here");
-                        overlaped.setContentText("Is not possible to make a state over a existing state or over a existing transition or out of the canvas");
+                        overlaped.setContentText("Is not possible to make a state over a existing state or over a existing transition");
                         overlaped.showAndWait();
                     }
                     
@@ -1143,7 +1120,7 @@ public class AFNDController implements Initializable
         for(int i=0; i<image.getWidth(); i++){
             for(int j=0; j<image.getHeight(); j++){
                 if(image.getPixelReader().getArgb(i, j)!=-1 && image.getPixelReader().getArgb(i, j)!=-263173){
-                    System.out.println(image.getPixelReader().getArgb(i, j));
+                    //System.out.println(image.getPixelReader().getArgb(i, j));
                     return true;
                 }
             }
@@ -1203,6 +1180,9 @@ public class AFNDController implements Initializable
         
         //Subtract the intersection of the transition with the asociated states
         transitionLine = Shape.subtract(transitionLine, circles);
+        
+        if(transitionsRedList.contains(t))
+            transitionsRedList.remove(t);
         
         intersectionsShape = Shape.subtract(intersectionsShape, transitionLine);
              
