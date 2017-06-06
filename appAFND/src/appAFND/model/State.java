@@ -5,76 +5,70 @@
  */
 package appAFND.model;
 
+import appAFND.controller.TransitionController;
+import java.util.ArrayList;
+
 /**
  *
  * @author felipe
  */
 public class State
 {
-    public boolean initial;
-    public String label;
-    public int positionX;
-    public int positionY;
-    public boolean active;
+    private ArrayList<TransitionController> toState, fromState;
 
-    public State(boolean initial, String label, boolean active)
+    public State()
     {
-        this.initial = initial;
-        this.label = label;
-        this.active = active;
+        this.toState = new ArrayList<>();
+        this.fromState = new ArrayList<>();
+    }
+
+    public boolean fromStateContains(TransitionController o) {
+        return fromState.contains(o);
+    }
+
+    public TransitionController fromStateGet(int index) {
+        return fromState.get(index);
     }
     
-    public boolean isInitial()
-    {
-        return initial;
-    }
-
-    public void setInitial()
-    {
-        this.initial = true;
-    }
-
-    public String getLabel()
-    {
-        return label;
-    }
-
-    public void setLabel(String label)
-    {
-        this.label = label;
-    }
-
-    public int getPositionX()
-    {
-        return positionX;
-    }
-
-    public void setPositionX(int positionX)
-    {
-        this.positionX = positionX;
-    }
-
-    public int getPositionY()
-    {
-        return positionY;
-    }
-
-    public void setPositionY(int positionY)
-    {
-        this.positionY = positionY;
-    }
-
-    public boolean isActive()
-    {
-        return active;
-    }
-
-    public void setActive(boolean active)
-    {
-        this.active = active;
+    public boolean fromStateEmpty() {
+        return fromState.isEmpty();
     }
     
+    public boolean toStateEmpty() {
+        return toState.isEmpty();
+    }
+
+    public boolean fromStateAdd(TransitionController e) {
+        return fromState.add(e);
+    }
+
+    public boolean fromStateRemove(TransitionController o) {
+        return fromState.remove(o);
+    }
     
+    public boolean toStateContains(TransitionController o) {
+        return toState.contains(o);
+    }
+
+    public TransitionController toStateGet(int index) {
+        return toState.get(index);
+    }
+
+    public boolean toStateAdd(TransitionController e) {
+        return toState.add(e);
+    }
+
+    public boolean toStateRemove(TransitionController o) {
+        return toState.remove(o);
+    }
     
-    
+    public ArrayList<TransitionController> getFromState()
+    {
+        return this.fromState;
+    }
+   
+    public ArrayList<TransitionController> getToState()
+    {
+        return this.toState;
+    }
 }

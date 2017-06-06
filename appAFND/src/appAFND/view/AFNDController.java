@@ -12,27 +12,34 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import appAFND.controller.StateController;
+import appAFND.controller.TransitionController;
 import appAFND.model.Alphabet;
 import appAFND.model.Automaton;
+import appAFND.model.Dijkstra;
 import appAFND.model.NFA;
 import appAFND.model.State;
+import appAFND.model.Transition;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
-import javafx.scene.Cursor;
+import javafx.geometry.Point2D;
 import javafx.scene.Group;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -41,17 +48,23 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.Slider;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
+import javafx.scene.shape.QuadCurve;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 import javafx.scene.transform.Rotate;
 import javafx.util.Pair;
-import jdk.nashorn.internal.ir.CallNode;
 import org.controlsfx.control.spreadsheet.GridBase;
 import org.controlsfx.control.spreadsheet.SpreadsheetCell;
 import org.controlsfx.control.spreadsheet.SpreadsheetCellType;
@@ -71,8 +84,10 @@ public class AFNDController implements Initializable
     private ScrollPane scrollPane;
 
     private int radius;
-    private ArrayList<StateController> states;
-    private ArrayList<TransitionView> transitions;
+    ArrayList<StateController> statesList;
+    ArrayList<TransitionController> transitionsList;
+    ArrayList<StateController> statesRedList = new ArrayList<>();
+    ArrayList<TransitionController> transitionsRedList = new ArrayList<>();
     @FXML
     private MenuBar menuBar;
     @FXML
@@ -86,29 +101,32 @@ public class AFNDController implements Initializable
     @FXML
     private Button buttonMove;
     @FXML
-    private Button buttonState;
+    private ToggleButton buttonState;
     @FXML
-    private Button buttonTransition;
+    private ToggleButton buttonTransition;
     @FXML
     private Button buttonUndo;
     @FXML
     private Button buttonRedo;
     @FXML
-    private ComboBox<?> comboZoom;
-    @FXML
     private SplitPane splitPane;
     
     private SpreadsheetView spreadSheet;
     
-    private Group group = new Group();
+    private Pane automatonPane = new Pane();
+    private Group groupStates = new Group();
+    private Group groupTransitions = new Group();
     private Rectangle canvas = new Rectangle(0, 0, 0, 0);
-    private String buttonPressed;
+    private String buttonPressed = new String();
     private int canvasWidth;
     private int canvasHeight;
     
-    private int transitionClickCounter=0;
-    private Circle transitionC1;
-    private Circle transitionC2;
+    private int transitionClickCounter;
+    private StateController transitionStateFrom;
+    private StateController transitionStateTo;
+    
+    /*private FastFeatureDetector ffd;
+    private KeyPointVector keyPoints;*/
     
     @FXML
     private TabPane tabPane;
@@ -119,29 +137,100 @@ public class AFNDController implements Initializable
     @FXML
     private Button buttonExecute;
 
+    int stateCounter;
+    @FXML
+    private Slider sliderZoom;
+    
+    private Shape intersectionsShape = new Rectangle(0, 0, 0, 0);   
+    
+    private Color colorStateFinal = Color.web("#006485");
+    private Color colorState = Color.DEEPSKYBLUE;
+    private Color colorStateIntersect = Color.CRIMSON;
     /**
      * Initializes the controller class.
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         this.dialogInitial();
-        
+        this.stateCounter = 0;        
         this.transitionClickCounter = 0;
+        
+        //this.ffd = FastFeatureDetector.create(10/* threshold for detection */, true /* non-max suppression */, FastFeatureDetector.TYPE_9_16); 
+        //this.keyPoints = new KeyPointVector(); 
         
         this.canvasWidth = 1200;
         this.canvasHeight = 800;
         
-        this.canvas.setHeight(canvasHeight);
+        this.canvas.setHeight(this.canvasHeight);
         this.canvas.setWidth(this.canvasWidth);
         this.canvas.setFill(Color.WHITE);
-        this.group.getChildren().add(this.canvas);
-        this.scrollPane.setContent(this.group);
         
+        //this.intersectionsShape = Shape.union(new Rectangle(0, 0, 0, 0), this.intersectionsShape);
+        
+        this.automatonPane.getChildren().add(this.canvas);
+        this.automatonPane.getChildren().add(this.groupStates);
+        this.automatonPane.getChildren().add(this.groupTransitions);
+        
+        Group group = new Group(automatonPane);
+
+        // stackpane for centering the content, in case the ScrollPane viewport
+        // is larger than zoomTarget
+        StackPane content = new StackPane(group);
+        group.layoutBoundsProperty().addListener((observable, oldBounds, newBounds) -> {
+            // keep it at least as large as the content
+            content.setMinWidth(newBounds.getWidth());
+            content.setMinHeight(newBounds.getHeight());
+        });
+        
+        this.scrollPane.setContent(content);
+        
+        scrollPane.viewportBoundsProperty().addListener((observable, oldBounds, newBounds) -> {
+            // use vieport size, if not too small for zoomTarget
+            content.setPrefSize(newBounds.getWidth(), newBounds.getHeight());
+        });
+        
+        sliderZoom.valueProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                final double zoomFactor = newValue.doubleValue()/oldValue.doubleValue();
+                
+                Bounds groupBounds = group.getLayoutBounds();
+                final Bounds viewportBounds = scrollPane.getViewportBounds();
+
+                // calculate pixel offsets from [0, 1] range
+                double valX = scrollPane.getHvalue() * (groupBounds.getWidth() - viewportBounds.getWidth());
+                double valY = scrollPane.getVvalue() * (groupBounds.getHeight() - viewportBounds.getHeight());
+
+                // convert content coordinates to zoomTarget coordinates
+                double hRel = scrollPane.getHvalue() / scrollPane.getHmax();
+                double vRel = scrollPane.getVvalue() / scrollPane.getVmax();
+                Point2D posInZoomTarget = automatonPane.parentToLocal(group.parentToLocal(new Point2D(((groupBounds.getWidth() - viewportBounds.getWidth()) * hRel) + viewportBounds.getWidth() / 2, ((groupBounds.getHeight() - viewportBounds.getHeight()) * vRel) + viewportBounds.getHeight() / 2)));
+
+                // calculate adjustment of scroll position (pixels)
+                Point2D adjustment = automatonPane.getLocalToParentTransform().deltaTransform(posInZoomTarget.multiply(zoomFactor - 1));
+
+                // do the resizing
+                automatonPane.setScaleX(zoomFactor * automatonPane.getScaleX());
+                automatonPane.setScaleY(zoomFactor * automatonPane.getScaleY());
+
+                // refresh ScrollPane scroll positions & content bounds
+                scrollPane.layout();
+
+                // convert back to [0, 1] range
+                // (too large/small values are automatically corrected by ScrollPane)
+                groupBounds = group.getLayoutBounds();
+                scrollPane.setHvalue((valX + adjustment.getX()) / (groupBounds.getWidth() - viewportBounds.getWidth()));
+                scrollPane.setVvalue((valY + adjustment.getY()) / (groupBounds.getHeight() - viewportBounds.getHeight()));
+            }
+        });       
+        
+                
         //this.automaton = new NFA();
         
         this.canvas.setOnMouseClicked(new EventHandler<MouseEvent>(){
             @Override
             public void handle(MouseEvent event) {
+                scrollPane.requestFocus();
                 canvasClick(event);
             }
         });
@@ -153,26 +242,25 @@ public class AFNDController implements Initializable
         });
         
         this.radius = 25;
-        this.states = new ArrayList<>();
-        this.transitions = new ArrayList<>();
+        this.statesList = new ArrayList<>();
+        this.transitionsList = new ArrayList<>();
         
         this.updateTable();
-    }
-
-    @FXML
-    private void zoom(ActionEvent event) {
-    }
-
-    @FXML
-    private void selectEdit(ActionEvent event) {
-        buttonMove.setCursor(Cursor.OPEN_HAND);
-        buttonPressed = "Edit";
-        event.consume();
+        
+        final BooleanProperty firstTime = new SimpleBooleanProperty(true);
+        this.buttonState.focusedProperty().addListener((observable,  oldValue,  newValue) -> {
+            if(newValue && firstTime.get()){
+                scrollPane.requestFocus(); // Delegate the focus to container
+                firstTime.setValue(false); // Variable value changed for future references
+            }
+        });
     }
 
     @FXML
     private void selectState(ActionEvent event) {
         buttonPressed = "State";
+        buttonState.setSelected(true);
+        buttonTransition.setSelected(false);
         event.consume();
     }
     
@@ -180,6 +268,8 @@ public class AFNDController implements Initializable
     private void selectTransition(ActionEvent event) {
         buttonPressed = "Transition";
         this.transitionClickCounter = 0;
+        buttonState.setSelected(false);
+        buttonTransition.setSelected(true);
         event.consume();
     }
 
@@ -196,6 +286,7 @@ public class AFNDController implements Initializable
     }
 
     private void canvasClick(MouseEvent event) {
+        //Handle clicks in borders of the canvas
         double x = event.getX();                
         if(x < this.radius){
             x = this.radius;
@@ -212,68 +303,69 @@ public class AFNDController implements Initializable
             y = this.canvasHeight-this.radius-2;
         }
         
-        switch(buttonPressed){
-            case "Edit":
-                //Right click -> Context menu (change label, set final)
-                //Drag node with transitions
-                break;
-                
+        switch(buttonPressed){                
             case "State":
-                String name = dialogState();
-                State state = new State(false, name, false);
-                StateView stateView = new StateView(this, x, y, this.radius, name);
-                StateController nodeController = new StateController(state, stateView);
+                //String name = dialogState();              // Modified by Victor
+                String name = "Q" + this.stateCounter;
+                //If the user write a name for the state, create the state, add it to the list of states,
+                //draw it in the canvas, add it to the automaton and update table.
+                if (!name.isEmpty()){        
+                    //Create state
+                    State state = new State();
+                    StateView stateView = new StateView(this, x, y, this.radius, name);
+                    StateController stateController = new StateController(state, stateView);
+                    stateView.setController(stateController);
+                    
+                    boolean overlapped = false;
+                    
+                    
+                    /*for (StateController s : this.statesList){
+                        //Verify intersection
+                        if(s.compareTo(stateController)==0){                        
+                            overlapped = true;                            
+                        }
+                    }*/
+                    
+                    if(!overlapped){
+                        if (intersectionAddState(stateController))
+                            overlapped = true;
+                    }
+                    
+                    if(overlapped){
+                        Alert overlaped = new Alert(Alert.AlertType.ERROR);
+                        overlaped.setTitle("State error");
+                        overlaped.setHeaderText("You can't make a state here");
+                        overlaped.setContentText("Is not possible to make a state over a existing state or over a existing transition");
+                        overlaped.showAndWait();
+                    }
+                    
+                    //Draw state
+                    else {
+                        //Create dialog to set the name of the state
 
-                boolean overlapped = false;
-
-                for (StateController item : this.states)
-                {
-                    if (item.compareTo(nodeController) == 0)
-                    {
-                        overlapped = true;
+                        //Draw state
+                        stateController.getStateView().drawState(groupStates);
+                        
+                        if (this.statesList.size() == 0) {                            
+                            automaton.setInitialState(stateController);
+                            Polygon arrow = new Polygon(new double[]{0, 0, 10, 10, -10, 10});
+                            Circle circleNode = stateController.getStateView().getCircle();
+                            arrow.setTranslateX(x - (circleNode.getRadius()+(circleNode.getStrokeWidth()/2)));
+                            arrow.setTranslateY(y);
+                            arrow.getTransforms().add(new Rotate(90, 0, 0));
+                            arrow.setFill(Color.YELLOWGREEN);
+                            this.groupStates.getChildren().add(arrow);
+                            stateController.getStateView().setArrow(arrow);
+                        }
+                        //Add state to the list of states
+                        this.statesList.add(stateController);
+                        //Add state to the automaton
+                        this.automaton.addState(stateController);                        
+                        //Update table
+                        this.stateCounter++;
+                        this.updateTable();
                     }
                 }
-
-                if (!overlapped) {
-                    //Create dialog to set the name of the state
-                    
-                    //Draw node
-                    group.getChildren().add(nodeController.getStateView().getCircle());
-                    group.getChildren().add(nodeController.getStateView().getText());
-                    
-                    if (this.states.size() == 0) {
-                        state.setInitial();
-                        Polygon arrow = new Polygon(new double[]{0, 0, 10, 10, -10, 10});
-                        Circle circleNode = nodeController.getStateView().getCircle();
-                        arrow.setTranslateX(x - (circleNode.getRadius()+(circleNode.getStrokeWidth()/2)));
-                        arrow.setTranslateY(y);
-                        arrow.getTransforms().add(new Rotate(90, 0, 0));
-                        arrow.setFill(Color.YELLOWGREEN);
-                        this.group.getChildren().add(arrow);
-                    } //ADD NODES TO NFA 
-                    this.states.add(nodeController);
-                    /*WritableImage image = group.snapshot(new SnapshotParameters(), null);
-                    // TODO: probably use a file chooser here
-                    File file = new File("canvas.png");
-                    try {
-                        ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
-                    } catch (IOException e) {
-                        // TODO: handle exception here 
-                    } 
-                        Mat image2 = imread(file.getAbsolutePath(), IMREAD_COLOR);*/
-                        //FastFeatureDetector ffd = FastFeatureDetector.create(25/* threshold for detection */, true /* non-max suppression */, FastFeatureDetector.TYPE_7_12);
-                        /*KeyPointVector keyPoints = new KeyPointVector();
-                        ffd.detect(image2, keyPoints);
-                        
-                        //Muestra una imagen en una ventana nueva con los vertices detectados 
-                        Mat c = new Mat(); drawKeypoints(image2, keyPoints, c, new Scalar(0, 0, 255, 0), DrawMatchesFlags.DEFAULT); 
-                        OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat(); 
-                        CanvasFrame canvas = new CanvasFrame("hola", 1); canvas.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); 
-                        canvas.showImage(converter.convert(c));
-                        
-                        //Cantidad de vertices detectados 
-                        System.out.println(keyPoints.size());*/
-                    }
                 break;
             case "Transition":
                 break;
@@ -289,7 +381,11 @@ public class AFNDController implements Initializable
         this.automaton = automaton;
     }
     
-    private void updateTable()
+    public Automaton getAutomaton(){
+        return this.automaton;
+    }
+    
+    public void updateTable()
     {
         double divider  = 0;
         this.splitPane.setDividerPosition(0, 0.85f);
@@ -300,8 +396,8 @@ public class AFNDController implements Initializable
         this.splitPane.getItems().remove(this.spreadSheet);
         //this.splitPane.setDividerPositions(0.85f);
         
-        int rowCount = this.automaton.getStates().size() + 1;
-        int colCount = this.automaton.getAlphabet().alphabetSize() + 1;
+        int rowCount = this.automaton.getStates().size()+1;
+        int colCount = this.automaton.getAlphabet().alphabetSize()+1;
         
         GridBase grid = new GridBase(rowCount, colCount);
         ArrayList<ObservableList<SpreadsheetCell>> rows = new ArrayList<>(grid.getRowCount());
@@ -310,34 +406,37 @@ public class AFNDController implements Initializable
         
         ObservableList<SpreadsheetCell> list = FXCollections.observableArrayList();
         SpreadsheetCell cell00 = SpreadsheetCellType.STRING.createCell(0, 0, 1, 1, "Q/\u03A3");
-        cell00.setStyle("-fx-background-color: #00BFFF");
+        cell00.setStyle("-fx-background-color: #00BFFF; -fx-alignment: center;");
         list.add(cell00);
         
         for(int j = 0; j < this.automaton.getAlphabet().alphabetSize(); j++)
         {
             SpreadsheetCell alphCell = SpreadsheetCellType.STRING.createCell(0, j + 1, 1, 1, this.automaton.getAlphabet().getCharacter(j).toString());
             alphCell.setEditable(false);
-            alphCell.setStyle("-fx-background-color: #8ADFFC");
+            alphCell.setStyle("-fx-background-color: #8ADFFC; -fx-alignment: center;");
+            
             list.add(alphCell);
         }
         
         rows.add(list);
         
         
-        for (int i = 0; i < this.automaton.getStates().size(); i++)
+        for (int i = 0; i < this.automaton.getStates().size(); ++i)
         {
             ObservableList<SpreadsheetCell> list2 = FXCollections.observableArrayList();
 
             StateController state = this.automaton.getStates().get(i);
-            SpreadsheetCell stateCell = SpreadsheetCellType.STRING.createCell(i + 1, 0, 1, 1, state.getStateLabel());
+            SpreadsheetCell stateCell = SpreadsheetCellType.STRING.createCell(i+1, 0, 1, 1, state.getStateView().getText().getText());
             stateCell.setEditable(false);
-            if(state.isStateInitial())
+            if(state.equals(automaton.getInitialState()))
                 stateCell.setStyle("-fx-background-color: #9ACD32");
+            else if(automaton.getFinalStates().contains(state))
+                stateCell.setStyle("-fx-background-color: #E67E22");
             else 
                 stateCell.setStyle("-fx-background-color: #8ADFFC");
             list2.add(stateCell);
             HashMap<String, ArrayList<StateController>> stateTransitions = transitions.get(state);
-            for (int j = 0; j < this.automaton.getAlphabet().alphabetSize(); j++)
+            for (int j = 0; j < this.automaton.getAlphabet().alphabetSize(); ++j)
             {
                 ArrayList<StateController> to = stateTransitions.get(this.automaton.getAlphabet().getCharacter(j).toString());
                 String label = "";
@@ -345,16 +444,23 @@ public class AFNDController implements Initializable
                 {
                     for (int k = 0; k < to.size(); k++)
                     {
-                        label += to.get(k).getStateLabel();
-                        if(!(k < to.size() - 1))
+                        if(k != 0)
+                        {
                             label += ", ";
+                            label += to.get(k).getStateView().getText().getText();
+                        }
+                        else
+                        {
+                            label += to.get(k).getStateView().getText().getText();
+                        }
                     }
                 }
-                else {
+                else { 
                     label += " ";
                 }
-                SpreadsheetCell transCell = SpreadsheetCellType.STRING.createCell(i+ 1, j + 1, 0, 0, label);
+                SpreadsheetCell transCell = SpreadsheetCellType.STRING.createCell(i+1, j+1, 1, 1, label);
                 transCell.setEditable(false);
+                transCell.setStyle("-fx-background-color: #ffffff");
                 list2.add(transCell);
             }
             rows.add(list2);
@@ -400,7 +506,8 @@ public class AFNDController implements Initializable
             {
                 for(String str : alphabet)
                 {
-                    alphController.addCharacter(str.charAt(0));
+                    if(!alphController.alphabetContains(str.charAt(0))) 
+                        alphController.addCharacter(str.charAt(0));
                 }
                 this.automaton = new NFA(new ArrayList<>(), alphController, new ArrayList<>(), null);
             }
@@ -415,45 +522,119 @@ public class AFNDController implements Initializable
         }
     }
     
-    void stateClicked(StateView view) {
+    //Used for the creation of transitions
+    void stateClicked(StateController statecontroller) {
+        //Obtain the states (from and to), obtain the label for the transition,
+        //add states to the transition model, create the transition view, 
+        //create the transition controller,
+        //draw the transition view, add the transition to the automaton
+        //update table.
         if (this.buttonPressed.equals("Transition")){
             this.transitionClickCounter++;            
             if (this.transitionClickCounter == 1){
-                this.transitionC1 = view.getCircle();
+                //State from
+                this.transitionStateFrom = statecontroller;
             }
             else if (this.transitionClickCounter == 2){
-                this.transitionC2 = view.getCircle();
-                this.transitionClickCounter = 0;
+                //State to
+                this.transitionStateTo = statecontroller;
                 //Request label through a window
-                String[] chars = dialogTransition();
-                String label = new String();
-                for (String c : chars){
-
-                    if (automaton.getAlphabet().alphabetContains(c.charAt(0))){
-                        if(label.isEmpty())
-                            label = label.concat(((Character)c.charAt(0)).toString());
-                        else
-                            if (!label.contains(((Character)c.charAt(0)).toString()))
-                                label = label.concat(", ").concat(((Character)c.charAt(0)).toString());                            
+                boolean doubleTransition = false;
+                for(TransitionController t : transitionsList){
+                    if(t.getTransitionFrom().equals(transitionStateFrom) && 
+                            t.getTransitionTo().equals(transitionStateTo)){                       
+                        doubleTransition=true;
                     }
                 }
+                for(TransitionController t : transitionsRedList){
+                    if(t.getTransitionFrom().equals(transitionStateFrom) && 
+                            t.getTransitionTo().equals(transitionStateTo)){                       
+                        doubleTransition=true;
+                    }
+                }
+                
+                if(!doubleTransition){
+                    
+                    String[] chars = dialogTransition("Create");
 
-                TransitionView transition = new TransitionView(this.transitionC1, this.transitionC2, label, this.canvasHeight, this.canvasWidth);
-                group.getChildren().add(transition.getTransition());
-                transitions.add(transition);
+                    buttonTransition.fire();
+
+                    if (!chars[0].isEmpty()){  
+                        //Verify if any character exist in the alphabet
+                        boolean existCharValid = false;
+                        for (String c : chars){
+                            Character c2 = c.charAt(0);
+                            if(automaton.getAlphabet().alphabetContains(c2)){
+                                existCharValid = true;                            
+                            }
+                            if(existCharValid)
+                                break;
+                        }
+                        if(existCharValid){                    
+                            String label = new String();
+                            for (String c : chars){
+                                Character c2 = c.charAt(0);
+                                String c2s = c2.toString();
+                                if (automaton.getAlphabet().alphabetContains(c2)){
+                                    if(label.isEmpty()){                                
+                                        label = label.concat(c2s);
+                                        if(this.automaton instanceof NFA){
+                                            ((NFA)this.automaton).addTransition(transitionStateFrom, transitionStateTo, c2s);
+                                        }
+                                    }
+                                    else
+                                        if (!label.contains(c2s))
+                                            label = label.concat(", ").concat(c2s);
+                                            if(this.automaton instanceof NFA){
+                                                ((NFA)this.automaton).addTransition(transitionStateFrom, transitionStateTo, c2s);
+                                            }
+                                }
+                            }
+
+                            Transition transitionmodel = new Transition(this.transitionStateFrom, this.transitionStateTo);                    
+                            TransitionView transitionview = new TransitionView(this.transitionStateFrom, this.transitionStateTo, label, this.canvasHeight, this.canvasWidth, this);
+                            TransitionController transitionController = new TransitionController(transitionmodel, transitionview);
+                            transitionview.setTransitionController(transitionController);
+                            
+                            transitionStateFrom.fromStateAdd(transitionController);
+                            transitionStateTo.toStateAdd(transitionController);
+                            
+                            //Intersection->Transition red
+                            if(intersectionAddTransition(transitionController)){
+                                transitionController.getTransitionView().setRed();
+                                //Add the red transition to a list apart
+                                transitionsRedList.add(transitionController);
+                            }
+                            else{
+                                transitionsList.add(transitionController);
+                            }
+                            
+                            groupTransitions.getChildren().add(transitionview.getTransition());
+                            
+
+                            this.updateTable();
+                        }
+                    }  
+                }
+                else{
+                    Alert doubleT = new Alert(Alert.AlertType.ERROR);
+                    doubleT.setTitle("Double transition error");
+                    doubleT.setHeaderText("You can't make the same transition again");
+                    doubleT.setContentText("Try to edit the existing transition");
+                    doubleT.showAndWait();
+                    buttonTransition.fire();
+                }
             }
-
         }
     }
-
-    private String dialogState() {
+    String dialogState(String s) {
         // Create the custom dialog.
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("New state");
         dialog.setHeaderText("Introduce the name of the new state");
 
         // Set the button types.
-        ButtonType loginButtonType = new ButtonType("Create", ButtonData.OK_DONE);
+        ButtonType loginButtonType = new ButtonType(s, ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
 
         // Create the username and password labels and fields.
@@ -513,14 +694,14 @@ public class AFNDController implements Initializable
         });*/
     }
 
-    private String[] dialogTransition() {
+    String[] dialogTransition(String buttonLabel) {
         // Create the custom dialog.
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("New transition");
         dialog.setHeaderText("Introduce the characters for the transition (separated by comma ,)");
 
         // Set the button types.
-        ButtonType loginButtonType = new ButtonType("Create", ButtonData.OK_DONE);
+        ButtonType loginButtonType = new ButtonType(buttonLabel, ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
 
         // Create the username and password labels and fields.
@@ -542,14 +723,30 @@ public class AFNDController implements Initializable
         javafx.scene.Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
         loginButton.setDisable(true);
 
+        boolean isTextEmpty = true;
+        boolean isVoidUnselected = true;
+        
         // Do some validation (using the Java 8 lambda syntax).
         characters.textProperty().addListener((observable, oldValue, newValue) -> {
-            loginButton.setDisable(newValue.trim().isEmpty());            
+            loginButton.setDisable(newValue.trim().isEmpty());
+            voidChar.selectedProperty().addListener((observable2, oldValue2, newValue2) -> {
+                loginButton.setDisable(!newValue2 && newValue.trim().isEmpty());          
+            });
         });
         
         voidChar.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            loginButton.setDisable(!newValue);          
+            loginButton.setDisable(!newValue);
+            characters.textProperty().addListener((observable2, oldValue2, newValue2) -> {
+                loginButton.setDisable(newValue2.trim().isEmpty() && !newValue);
+            });
         });
+        
+        isTextEmpty = characters.getCharacters().toString().trim().isEmpty();
+        
+        isVoidUnselected = !(voidChar.isSelected());
+        
+        loginButton.setDisable(isTextEmpty && isVoidUnselected);
+        
 
         dialog.getDialogPane().setContent(grid);
 
@@ -568,4 +765,735 @@ public class AFNDController implements Initializable
             return chars;
         }
     }
+
+    @FXML
+    private boolean readWord(ActionEvent event)
+    {
+        if(automaton.getFinalStates().isEmpty()){
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Final state error");
+            result.setHeaderText("There are no final states");
+            result.showAndWait();
+            return false;
+        }
+        
+        /*for(StateController s : statesList){            
+            if(s.compareTo(automaton.getInitialState())!=0 && s.getStateModel().toStateEmpty()){
+                Alert result = new Alert(Alert.AlertType.ERROR);
+                result.setTitle("State error");
+                result.setHeaderText("Unreacheable state:");
+                result.setContentText(s.getStateView().getText().getText());
+                result.showAndWait();
+                return false;
+            }
+                
+        }*/
+        
+        if(!transitionsRedList.isEmpty()){
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Invalid transition error");
+            result.setHeaderText("Invalid transition detected");
+            result.setContentText("Please, move or delete the transitions showed in red");
+            result.showAndWait();
+            return false;
+        }
+        
+        if(!statesRedList.isEmpty()){
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Invalid state error");
+            result.setHeaderText("Invalid state detected");
+            result.setContentText("Please, move or delete the states showed in red");
+            result.showAndWait();
+            return false;
+        }
+        
+        String sp = null;
+        Dijkstra d = new Dijkstra(automaton);
+               
+        d.sp();
+        sp = d.getShortestWord();
+        
+        if(automaton.getInitialState()==null){
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Initial state error");
+            result.setHeaderText("There is no initial state");
+            result.showAndWait();
+            return false;
+        }
+        
+        else if(!d.isExistPath())
+        {
+            Alert shortest = new Alert(Alert.AlertType.ERROR);
+            shortest.setTitle("Viable path error");
+            shortest.setHeaderText("There is no viable path");
+            shortest.showAndWait();
+            return false;
+        }   
+        
+        else if(sp.isEmpty() && wordField.getText().isEmpty())
+        {
+            Alert shortest = new Alert(Alert.AlertType.INFORMATION);
+            shortest.setTitle("Word accepted");
+            shortest.setHeaderText("The word was accepted!");
+            shortest.showAndWait();
+            return true;
+        
+        }
+        else
+        {
+            return this.automaton.readWord(wordField.getText());
+        }
+        /*else
+        {
+            Alert shortest = new Alert(Alert.AlertType.INFORMATION);
+            shortest.setTitle("Word accepted");
+            shortest.setHeaderText("The word was accepted!");
+            shortest.setContentText("This automaton accepts any word");
+            shortest.showAndWait();
+            return true;
+        }*/
+        
+    }
+
+    @FXML
+    private void shortestWord(ActionEvent event) {
+        if(automaton.getFinalStates().isEmpty()){
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Final state error");
+            result.setHeaderText("There are no final states");
+            result.showAndWait();
+            return;
+        }
+        
+        
+        /*for(StateController s : statesList){            
+            if(s.compareTo(automaton.getInitialState())!=0 && s.getStateModel().toStateEmpty()){
+                Alert result = new Alert(Alert.AlertType.ERROR);
+                result.setTitle("State error");
+                result.setHeaderText("Unreacheable state:");
+                result.setContentText(s.getStateView().getText().getText());
+                result.showAndWait();
+                return;
+            }
+                
+        }*/
+        
+        if(!transitionsRedList.isEmpty()){
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Invalid transition error");
+            result.setHeaderText("Invalid transition detected");
+            result.setContentText("Please, move or delete the transitions showed in red");
+            result.showAndWait();
+            return;
+        }
+        
+        if(!statesRedList.isEmpty()){
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Invalid state error");
+            result.setHeaderText("Invalid state detected");
+            result.setContentText("Please, move or delete the states showed in red");
+            result.showAndWait();
+            return;
+        }
+        
+        String sp = null;
+        Dijkstra d = new Dijkstra(automaton);
+
+        d.sp();
+        sp = d.getShortestWord();
+
+        if(automaton.getInitialState()==null){
+            Alert shortest = new Alert(Alert.AlertType.ERROR);
+            shortest.setTitle("Initial state error");
+            shortest.setHeaderText("There is no initial state");
+            shortest.showAndWait();
+        }
+        
+        else if(!d.isExistPath())
+        {
+            Alert shortest = new Alert(Alert.AlertType.ERROR);
+            shortest.setTitle("Viable path error");
+            shortest.setHeaderText("There is no viable path");
+            shortest.showAndWait();
+        }   
+        else if (sp.length() == 0)
+        {
+            Alert shortest = new Alert(Alert.AlertType.INFORMATION);
+            shortest.setTitle("Shotest path");
+            shortest.setHeaderText("The shortest path is:");
+            shortest.setContentText("\"\"");
+            shortest.showAndWait();
+        }
+        else
+        {
+            Alert shortest = new Alert(Alert.AlertType.INFORMATION);
+            shortest.setTitle("Shotest path");
+            shortest.setHeaderText("The shortest path is:");
+            shortest.setContentText(sp);
+            shortest.showAndWait();
+        }
+        //System.out.println(d.getShortestWord());
+    }
+
+    /*private boolean statesInstersection(StateController s, StateController stateController) {
+        Circle c1 = new Circle();
+        c1.setRadius(s.getStateView().getCircle().getRadius());
+        c1.setStroke(Color.ALICEBLUE);
+        c1.setStrokeWidth(s.getStateView().getCircle().getStrokeWidth());
+        c1.setCenterX(s.getStateView().getCircle().getCenterX());
+        c1.setCenterY(s.getStateView().getCircle().getCenterY());
+
+        Circle c2 = new Circle();
+        c2.setRadius(stateController.getStateView().getCircle().getRadius());
+        c1.setStroke(Color.ALICEBLUE);
+        c2.setStrokeWidth(stateController.getStateView().getCircle().getStrokeWidth());
+        c2.setCenterX(stateController.getStateView().getCircle().getCenterX());
+        c2.setCenterY(stateController.getStateView().getCircle().getCenterY());
+
+        Path path = (Path) Shape.intersect(c1, c2);
+        return path.getElements().size()>0;
+    }*/
+    
+    boolean intersectionAddState(StateController s){
+        Circle circleState = s.getStateView().getCircle();
+        Color color = Color.BLACK;
+        
+        Circle stateCopy = new Circle(circleState.getCenterX(), circleState.getCenterY(), circleState.getRadius(), color);
+        stateCopy.setStroke(color);
+        stateCopy.setStrokeWidth(circleState.getStrokeWidth());
+        
+        intersectionsShape.setStroke(color);
+        intersectionsShape.setStrokeWidth(0);
+        Shape intersection = Shape.intersect(stateCopy, intersectionsShape);
+        
+        if(!intersection.getBoundsInLocal().isEmpty()){
+            return true;
+        }
+        
+        intersectionsShape.setStroke(color);
+        intersectionsShape.setStrokeWidth(0);
+        intersectionsShape = Shape.union(stateCopy, intersectionsShape);
+        /*
+        intersectionsStatesShape.setStroke(color);
+        intersectionsStatesShape.setStrokeWidth(0);
+        intersectionsStatesShape = Shape.union(stateCopy, intersectionsStatesShape);
+        //getFeatures(intersectionsShape);
+        */
+        return false;
+    }
+    
+    boolean intersectionAddTransition(TransitionController t){
+        QuadCurve transitionCurve = t.getTransitionView().getCurve();  
+        
+        Color color = Color.BLACK;     
+        
+        //Get only the line of the transition
+        QuadCurve transitionCopy = new QuadCurve();
+        transitionCopy.setStartX(transitionCurve.getStartX());
+        transitionCopy.setStartY(transitionCurve.getStartY());
+        transitionCopy.setEndX(transitionCurve.getEndX());
+        transitionCopy.setEndY(transitionCurve.getEndY());
+        transitionCopy.setControlX(transitionCurve.getControlX());
+        transitionCopy.setControlY(transitionCurve.getControlY());
+        transitionCopy.setFill(color);
+        transitionCopy.setStroke(color);
+        transitionCopy.setStrokeWidth(transitionCurve.getStrokeWidth());
+        
+        QuadCurve transitionSub = new QuadCurve();
+        transitionSub.setStartX(transitionCurve.getStartX());
+        transitionSub.setStartY(transitionCurve.getStartY());
+        transitionSub.setEndX(transitionCurve.getEndX());
+        transitionSub.setEndY(transitionCurve.getEndY());
+        transitionSub.setControlX(transitionCurve.getControlX());
+        transitionSub.setControlY(transitionCurve.getControlY());
+        transitionSub.setFill(color);
+        transitionSub.setStroke(color);
+        transitionSub.setStrokeWidth(0);
+        //Line of the transition
+        Shape transitionLine = Shape.subtract(transitionCopy, transitionSub);
+        
+        //Get the shape formed by the union of the asociated states
+        Circle circleFrom = t.getTransitionFrom().getStateView().getCircle();
+        Circle circleTo = t.getTransitionTo().getStateView().getCircle();
+        
+        Circle cFrom = new Circle(circleFrom.getCenterX(), circleFrom.getCenterY(), circleFrom.getRadius(), color);
+        cFrom.setStroke(color);
+        cFrom.setStrokeWidth(circleFrom.getStrokeWidth());
+        Circle cTo = new Circle(circleTo.getCenterX(), circleTo.getCenterY(), circleTo.getRadius(), color);
+        cTo.setStroke(color);
+        cTo.setStrokeWidth(circleTo.getStrokeWidth());
+        //Shape formed by the asociated states
+        Shape circles = Shape.union(cFrom, cTo);
+        
+        //Intersection with the asociated states        
+        Shape interFrom = Shape.intersect(transitionLine, cFrom);
+        Shape interTo = Shape.intersect(transitionLine, cTo);
+        
+        StateController from = t.getTransitionFrom();
+        StateController to = t.getTransitionTo();
+        
+        if(from==to){
+            if(interFrom.getBoundsInLocal().getHeight()>20){
+                if(!statesRedList.contains(from))
+                    statesRedList.add(from);
+                from.getStateView().getCircle().setFill(colorStateIntersect);
+                from.getStateView().getCircle().setStroke(colorStateIntersect);
+                return true;
+            }
+            else{
+                if(statesRedList.contains(from))
+                    statesRedList.remove(from);
+                from.getStateView().getCircle().setFill(colorState);
+                if(automaton.getFinalStates().contains(from))
+                    from.getStateView().getCircle().setStroke(colorStateFinal);
+                else
+                    from.getStateView().getCircle().setStroke(colorState);
+            }
+
+            if(interTo.getBoundsInLocal().getHeight()>20){
+                if(!statesRedList.contains(to))
+                    statesRedList.add(to);
+                to.getStateView().getCircle().setFill(colorStateIntersect);
+                to.getStateView().getCircle().setStroke(colorStateIntersect);
+                return true;
+            }
+            else{
+                if(statesRedList.contains(to))
+                    statesRedList.remove(to);
+                to.getStateView().getCircle().setFill(colorState);
+                if(automaton.getFinalStates().contains(to))
+                    to.getStateView().getCircle().setStroke(colorStateFinal);
+                else
+                    to.getStateView().getCircle().setStroke(colorState);
+            }
+        }
+        
+        else{
+            if(interFrom.getBoundsInLocal().getWidth()>3){
+                if(!statesRedList.contains(from))
+                    statesRedList.add(from);
+                from.getStateView().getCircle().setFill(colorStateIntersect);
+                from.getStateView().getCircle().setStroke(colorStateIntersect);
+                return true;
+            }
+            else{
+                if(statesRedList.contains(from))
+                    statesRedList.remove(from);
+                from.getStateView().getCircle().setFill(colorState);
+                if(automaton.getFinalStates().contains(from))
+                    from.getStateView().getCircle().setStroke(colorStateFinal);
+                else
+                    from.getStateView().getCircle().setStroke(colorState);
+            }
+
+            if(interTo.getBoundsInLocal().getWidth()>3){
+                if(!statesRedList.contains(to))
+                    statesRedList.add(to);
+                to.getStateView().getCircle().setFill(colorStateIntersect);
+                to.getStateView().getCircle().setStroke(colorStateIntersect);
+                return true;
+            }
+            else{
+                if(statesRedList.contains(to))
+                    statesRedList.remove(to);
+                to.getStateView().getCircle().setFill(colorState);
+                if(automaton.getFinalStates().contains(to))
+                    to.getStateView().getCircle().setStroke(colorStateFinal);
+                else
+                    to.getStateView().getCircle().setStroke(colorState);
+            }
+        }
+        
+        
+        //Subtract the intersection of the transition with the asociated states
+        transitionLine = Shape.subtract(transitionLine, circles);
+        
+        Shape intersection = Shape.intersect(intersectionsShape, transitionLine);
+        
+        /*if(getFeatures(intersection)>0){
+            return true;
+        }*/
+        //automatonPane.getChildren().add(transitionLine);
+        
+        
+        WritableImage image = intersection.snapshot(new SnapshotParameters(), null);
+        for(int i=0; i<image.getWidth(); i++){
+            for(int j=0; j<image.getHeight(); j++){
+                if(image.getPixelReader().getArgb(i, j)!=-1 && image.getPixelReader().getArgb(i, j)!=-263173){
+                    //System.out.println(image.getPixelReader().getArgb(i, j));
+                    return true;
+                }
+            }
+        }
+        
+        /*if(getFeatures(intersection)>0)
+            return true;*/
+        
+        intersectionsShape = Shape.union(transitionLine, intersectionsShape);
+        
+               
+        return false;
+    }
+    
+    void intersectionDeleteTransition(TransitionController t) {
+        QuadCurve transitionCurve = t.getTransitionView().getCurve();  
+        
+        Color color = Color.BLACK;     
+        
+        //Get only the line of the transition
+        QuadCurve transitionCopy = new QuadCurve();
+        transitionCopy.setStartX(transitionCurve.getStartX());
+        transitionCopy.setStartY(transitionCurve.getStartY());
+        transitionCopy.setEndX(transitionCurve.getEndX());
+        transitionCopy.setEndY(transitionCurve.getEndY());
+        transitionCopy.setControlX(transitionCurve.getControlX());
+        transitionCopy.setControlY(transitionCurve.getControlY());
+        transitionCopy.setFill(color);
+        transitionCopy.setStroke(color);
+        transitionCopy.setStrokeWidth(transitionCurve.getStrokeWidth());
+        
+        QuadCurve transitionSub = new QuadCurve();
+        transitionSub.setStartX(transitionCurve.getStartX());
+        transitionSub.setStartY(transitionCurve.getStartY());
+        transitionSub.setEndX(transitionCurve.getEndX());
+        transitionSub.setEndY(transitionCurve.getEndY());
+        transitionSub.setControlX(transitionCurve.getControlX());
+        transitionSub.setControlY(transitionCurve.getControlY());
+        transitionSub.setFill(color);
+        transitionSub.setStroke(color);
+        transitionSub.setStrokeWidth(0);
+        //Line of the transition
+        Shape transitionLine = Shape.subtract(transitionCopy, transitionSub);
+        
+        //Get the shape formed by the union of the asociated states
+        Circle circleFrom = t.getTransitionFrom().getStateView().getCircle();
+        Circle circleTo = t.getTransitionTo().getStateView().getCircle();
+        
+        Circle cFrom = new Circle(circleFrom.getCenterX(), circleFrom.getCenterY(), circleFrom.getRadius(), color);
+        cFrom.setStroke(color);
+        cFrom.setStrokeWidth(circleFrom.getStrokeWidth());
+        Circle cTo = new Circle(circleTo.getCenterX(), circleTo.getCenterY(), circleTo.getRadius(), color);
+        cTo.setStroke(color);
+        cTo.setStrokeWidth(circleTo.getStrokeWidth());
+        //Shape formed by the asociated states
+        Shape circles = Shape.union(cFrom, cTo);
+        
+        //Subtract the intersection of the transition with the asociated states
+        transitionLine = Shape.subtract(transitionLine, circles);
+        
+        if(transitionsRedList.contains(t))
+            transitionsRedList.remove(t);
+        
+        intersectionsShape = Shape.subtract(intersectionsShape, transitionLine);
+             
+    }
+    
+    void intersectionDeleteState(StateController s){
+        Circle circleState = s.getStateView().getCircle();
+        Color color = Color.BLACK;
+        
+        Circle stateCopy = new Circle(circleState.getCenterX(), circleState.getCenterY(), circleState.getRadius(), color);
+        stateCopy.setStroke(color);
+        stateCopy.setStrokeWidth(circleState.getStrokeWidth());
+        
+        intersectionsShape.setStroke(color);
+        intersectionsShape.setStrokeWidth(0);
+        intersectionsShape = Shape.subtract(intersectionsShape, stateCopy);
+
+    }
+    
+    /*boolean intersectionMoveTransition(TransitionView tview){
+        //QuadCurve tview = t.getTransitionView().getCurve();
+        //MoveTo move = new MoveTo(tview.getStartX(), tview.getStartY());
+        QuadCurve curveTransition = new QuadCurve();        
+        curveTransition.setControlX(tview.getCurve().getControlX());
+        curveTransition.setControlY(tview.getCurve().getControlY());
+        curveTransition.setStartX(tview.getCurve().getStartX());
+        curveTransition.setStartY(tview.getCurve().getStartY());
+        curveTransition.setEndX(tview.getCurve().getEndX());
+        curveTransition.setEndY(tview.getCurve().getEndY());
+        curveTransition.setStroke(Color.ORANGE);
+        curveTransition.setStrokeWidth(1);
+        curveTransition.setFill(null);
+        
+        StateController from = tview.getFrom();
+        StateController to = tview.getTo();
+        
+        Circle circleFrom = new Circle();
+        circleFrom.setRadius(from.getStateView().getCircle().getRadius());
+        circleFrom.setCenterX(from.getStateView().getCircle().getCenterX());
+        circleFrom.setCenterY(from.getStateView().getCircle().getCenterY());
+        circleFrom.setStroke(from.getStateView().getCircle().getStroke());
+        circleFrom.setStrokeWidth(from.getStateView().getCircle().getStrokeWidth());
+        circleFrom.setFill(from.getStateView().getCircle().getFill());
+        
+        Text textFrom = new Text(from.getStateView().getText().getText());
+        textFrom.setX(from.getStateView().getText().getX());
+        textFrom.setY(from.getStateView().getText().getY());
+        
+        Circle circleTo = new Circle();
+        circleTo.setRadius(to.getStateView().getCircle().getRadius());
+        circleTo.setCenterX(to.getStateView().getCircle().getCenterX());
+        circleTo.setCenterY(to.getStateView().getCircle().getCenterY());
+        circleTo.setStroke(to.getStateView().getCircle().getStroke());
+        circleTo.setStrokeWidth(to.getStateView().getCircle().getStrokeWidth());
+        circleTo.setFill(to.getStateView().getCircle().getFill());
+        
+        Text textTo = new Text(to.getStateView().getText().getText());
+        textTo.setX(to.getStateView().getText().getX());
+        textTo.setY(to.getStateView().getText().getY());
+        
+        
+        Rectangle r = new Rectangle(canvasWidth, canvasHeight, Color.WHITE);
+        
+        //Intersection between the transition and the asociated states
+//        Group g1 = new Group(r,circleFrom,textFrom,curveTransition);
+//        long featuresFrom = getFeatures(g1);
+//        Group g2 = new Group(r,circleTo,textTo, curveTransition);      
+//        
+//        long featuresTo = getFeatures(g2);
+//        
+//        Group g3 = new Group(r,curveTransition);
+//        long featuresCurve = getFeatures(g3);
+//        
+//        Group gt = new Group(r,circleFrom,circleTo,textFrom,textTo,curveTransition);
+//        long featuresT = getFeatures(gt);
+//        
+//        System.out.println("Total: "+featuresT);
+//        System.out.println("Result: "+(featuresFrom+featuresTo-featuresCurve));
+//        
+//        if(featuresT < featuresFrom+featuresTo-featuresCurve){
+//            return true;
+//        }
+
+        Shape interFrom = Shape.intersect(circleFrom, curveTransition);
+        Shape interTo = Shape.intersect(circleTo, curveTransition);
+        
+        if(interFrom.getBoundsInLocal().getWidth()>3){
+            if(!statesRedList.contains(from))
+                statesRedList.add(from);
+            from.getStateView().getCircle().setFill(Color.CRIMSON);
+            from.getStateView().getCircle().setStroke(Color.CRIMSON);
+            return true;
+        }
+        else{
+            if(statesRedList.contains(from))
+                statesRedList.remove(from);
+            from.getStateView().getCircle().setFill(Color.DEEPSKYBLUE);
+            if(automaton.getFinalStates().contains(from))
+                from.getStateView().getCircle().setStroke(Color.web("#006485"));
+            else
+                from.getStateView().getCircle().setStroke(Color.DEEPSKYBLUE);
+        }
+        
+        if(interTo.getBoundsInLocal().getWidth()>3){
+            if(!statesRedList.contains(to))
+                statesRedList.add(to);
+            to.getStateView().getCircle().setFill(Color.CRIMSON);
+            to.getStateView().getCircle().setStroke(Color.CRIMSON);
+            return true;
+        }
+        else{
+            if(statesRedList.contains(to))
+                statesRedList.remove(to);
+            to.getStateView().getCircle().setFill(Color.DEEPSKYBLUE);
+            if(automaton.getFinalStates().contains(to))
+                to.getStateView().getCircle().setStroke(Color.web("#006485"));
+            else
+                to.getStateView().getCircle().setStroke(Color.DEEPSKYBLUE);
+        }
+        
+        Group g4 = new Group(r,circleFrom,circleTo,textFrom,textTo,curveTransition);*/
+        
+        //todo menos transicion
+        /*automatonPane.getChildren().remove(tview.getTransition());
+        long featuresCanvas = getFeatures(automatonPane);
+        
+        //transicion con circulos - circulos
+        long featuresTransition = getFeatures(g4);
+        g4.getChildren().remove(curveTransition);
+        featuresTransition -= getFeatures(g4);
+        
+        //todo con curva transicion
+        automatonPane.getChildren().add(curveTransition);
+        long featuresTotal = getFeatures(automatonPane);
+        automatonPane.getChildren().remove(curveTransition);
+        automatonPane.getChildren().add(tview.getTransition());
+        
+        
+        if(featuresTotal != (featuresTransition)+featuresCanvas){
+            //System.out.println("inter new state");
+            System.out.println("Total: "+ featuresTotal);
+            System.out.println("Transition: " + (featuresTransition-featuresStates));
+            System.out.println("Canvas: " + featuresCanvas);
+            if(transitionsList.contains(tview.getTransitionController()))
+                transitionsList.remove(tview.getTransitionController());
+            if(!transitionsRedList.contains(tview.getTransitionController()))
+                transitionsRedList.add(tview.getTransitionController());
+            return true;
+        }
+        //System.out.println("no inter");
+        if(!transitionsList.contains(tview.getTransitionController()))
+            transitionsList.add(tview.getTransitionController());
+        if(transitionsRedList.contains(tview.getTransitionController()))
+            transitionsRedList.remove(tview.getTransitionController());*/
+        /*return false;
+    }*/
+    
+    /*private boolean stateTransitionInstersection(StateController s, TransitionController t) {
+        Circle c1 = new Circle();
+        c1.setRadius(s.getStateView().getCircle().getRadius()+(s.getStateView().getCircle().getStrokeWidth()/2));
+        c1.setCenterX(s.getStateView().getCircle().getCenterX());
+        c1.setCenterY(s.getStateView().getCircle().getCenterY());
+        c1.setStroke(Color.BLACK);
+        c1.setStrokeWidth(2);
+        c1.setFill(null);
+
+        QuadCurve tview = t.getTransitionView().getCurve();
+        //MoveTo move = new MoveTo(tview.getStartX(), tview.getStartY());
+        QuadCurve c2 = new QuadCurve();        
+        c2.setControlX(tview.getControlX());
+        c2.setControlY(tview.getControlY());
+        c2.setStartX(tview.getStartX());
+        c2.setStartY(tview.getStartY());
+        c2.setEndX(tview.getEndX());
+        c2.setEndY(tview.getEndY());
+        c2.setStroke(Color.BLACK);
+        c2.setStrokeWidth(2);
+        c2.setFill(null);
+        
+        
+        QuadCurve c3 = new QuadCurve();
+        c3.setControlX(tview.getControlX());
+        c3.setControlY(tview.getControlY());
+        c3.setStartX(tview.getStartX());
+        c3.setStartY(tview.getStartY());
+        c3.setEndX(tview.getEndX());
+        c3.setEndY(tview.getEndY());
+        c3.setStroke(Color.ALICEBLUE);
+        c3.setStrokeWidth(tview.getStrokeWidth()+1);
+        
+        Path line = new Path();
+        MoveTo move = new MoveTo();
+        move.setX(tview.getStartX());
+        move.setY(tview.getStartY());
+        QuadCurveTo c4 = new QuadCurveTo();
+        c4.setControlX(tview.getControlX());
+        c4.setControlY(tview.getControlY());
+        c4.setX(tview.getEndX());
+        c4.setY(tview.getEndY());
+        line.getElements().addAll(move,c4);
+        line.setFill(Color.ALICEBLUE);
+        line.setStroke(Color.BLACK);
+        
+        Path line2 = (Path) Shape.subtract(c3,c2);        
+        
+        
+        //System.out.println(line.getElements().size());
+        
+        //union function which combines any two shapes
+        Path path = (Path) Shape.intersect(line2, c1);
+        path.setFill(Color.RED);
+        group.getChildren().add(path);
+        
+        //return path.getBoundsInLocal().getHeight()>5 || path.getBoundsInLocal().getWidth()>5;
+        
+        //Interseccion transicion/estado
+        //Sacar foto a transicion y estado, calcular vertices
+        
+        Circle circle = s.getStateView().getCircle();
+        QuadCurve curve = t.getTransitionView().getCurve();
+        
+        long pointsT = getFeatures(c2);
+        System.out.println("T:"+pointsT);
+        
+        long pointsS = getFeatures(c1);
+        System.out.println("S:"+pointsS);
+        
+        Group g = new Group(c1, c2);
+        long pointsG = getFeatures(g);
+        System.out.println("G:"+pointsG); 
+        
+        
+        
+        
+        if (pointsT+pointsS < pointsG)
+            System.out.println("inter");
+        
+        //Agregar a un group
+        //Sacar foto y. alcular. vertices fel group
+        //Si la cantidad de vertices de group es mayor x 2 o mas, hay interseccion
+        
+        //interseccion transicion/transicion
+        //calcular vertices x separado
+        //Group
+        //calcular vertices group
+        //si la cantidad de vertices de las curvas y group iguales -> interse cion
+        //si la cantidad de vertices cambia -> interseccion
+        
+        return false;
+    }*/
+
+    /*private long getFeatures(Node node) {
+        WritableImage image = node.snapshot(new SnapshotParameters(), null);
+        
+        File file = new File("features.png");
+        try {
+            ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
+        } catch (IOException e) {
+        } 
+            
+            Mat image2 = imread(file.getAbsolutePath(), IMREAD_COLOR);            
+            file.delete();            
+            ffd.detect(image2, keyPoints);
+            
+            //Muestra una imagen en una ventana nueva con los vertices detectados             
+            Mat c = new Mat(); drawKeypoints(image2, keyPoints, c, new Scalar(0, 0, 255, 0), DrawMatchesFlags.DEFAULT); 
+            OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat(); 
+            CanvasFrame canvasFrame = new CanvasFrame("hola", 1); canvasFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); 
+            canvasFrame.showImage(converter.convert(c));
+
+            //Cantidad de vertices detectados 
+             return keyPoints.size();
+    }*/
+
+    public Pane getAutomatonPane()
+    {
+        return automatonPane;
+    }
+
+    public void setAutomatonPane(Pane group)
+    {
+        this.automatonPane = group;
+    }
+
+    public Group getGroupStates()
+    {
+        return groupStates;
+    }
+
+    public void setGroupStates(Group groupStates)
+    {
+        this.groupStates = groupStates;
+    }
+
+    public Group getGroupTransitions()
+    {
+        return groupTransitions;
+    }
+
+    public void setGroupTransitions(Group groupTransitions)
+    {
+        this.groupTransitions = groupTransitions;
+    }
+    
+    public void removeStateAuxiliar(StateController state, ArrayList<TransitionController> transitions)
+    {
+        this.statesList.remove(state);
+        this.statesRedList.remove(state);
+        this.transitionsList.removeAll(transitions);
+        this.transitionsRedList.removeAll(transitions);
+    }
+
+    
 }

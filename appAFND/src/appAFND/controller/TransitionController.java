@@ -24,33 +24,34 @@ public class TransitionController
         this.view = view;
     }
     
-    public State getTransitionFrom()
+    public StateController getTransitionFrom()
     {
         return model.getFrom();
     }
     
-    public void setTransitionFrom(State from)
+    public void setTransitionFrom(StateController from)
     {
         model.setFrom(from);
     }
     
-    public State getTransitionTo()
+    public StateController getTransitionTo()
     {
         return model.getTo();
     }
     
-    public void setTransitionTo(State to)
+    public void setTransitionTo(StateController to)
     {
         model.setTo(to);
     }
-    
-    public String getTransitionLabel()
-    {
-        return model.getLabel();
+
+    public Transition getTransitionModel() {
+        return model;
+    }
+
+    public TransitionView getTransitionView() {
+        return view;
     }
     
-    public void setTransitionLabel(String label)
-    {
-        model.setLabel(label);
-    }
+    
+    
 }

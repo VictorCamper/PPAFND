@@ -5,13 +5,26 @@
  */
 package appAFND.view;
 
+import appAFND.controller.StateController;
+import appAFND.controller.TransitionController;
+import appAFND.model.Automaton;
+import appAFND.model.NFA;
+import appAFND.model.Transition;
 import com.sun.javafx.tk.FontLoader;
 import com.sun.javafx.tk.Toolkit;
+import java.util.ArrayList;
+import java.util.HashMap;
 import javafx.beans.property.DoubleProperty;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
+import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -35,73 +48,286 @@ public class TransitionView {
     private Anchor end;
     private Arrow arrow;
     private Text text;
+    private double midx,midy;
     private Group group = new Group();
     private double canvasHeight, canvasWidth;
+    private StateController from, to;
+    private AFNDController afndController;
+    private TransitionController tController;
+    private ContextMenu context= new ContextMenu();
     
-    public TransitionView(Circle c1, Circle c2, String label, double canvasHeight, double canvasWidth){
+    public TransitionView(StateController from, StateController to, String label, double canvasHeight, double canvasWidth, AFNDController afndController){
         this.curve = new QuadCurve();
         this.canvasHeight = canvasHeight;
         this.canvasWidth = canvasWidth;
+        this.from = from;
+        this.to = to;
+        this.afndController = afndController;
+        MenuItem edit = new MenuItem("Edit transition");
+        //MenuItem add = new MenuItem("add");
+        MenuItem delete = new MenuItem("Delete transition");
+        context.getItems().addAll(edit,delete);
         
-        //Calculate the start/end points of the transition
-        double sx = calcX(c1,c2);
-        double sy = calcY(c1,c2);
-        double ex = calcX(c2,c1);
-        double ey = calcY(c2,c1);
-        
-        this.curve.setStartX(sx);
-        this.curve.setStartY(sy);        
-        this.curve.setEndX(ex);
-        this.curve.setEndY(ey);
-        
-        double midx = (sx+ex)/2;
-        double midy = (sy+ey)/2;
-        this.curve.setControlX(midx);
-        this.curve.setControlY(midy);     
-        
-        this.curve.setStroke(Color.web("#0169CE"));
-        this.curve.setStrokeWidth(2);
-        this.curve.setStrokeLineCap(StrokeLineCap.BUTT);
-        this.curve.setFill(Color.TRANSPARENT);
+        Circle c1 = this.from.getStateView().getCircle();
+        Circle c2 = this.to.getStateView().getCircle();
         
         this.text = new Text(label);
         FontLoader fontLoader = Toolkit.getToolkit().getFontLoader();
         Font font = this.text.getFont();
         float textWidth = fontLoader.computeStringWidth(label, font);
-        this.text.setX(midx-(textWidth/2));
-        this.text.setY(midy-12);        
         
-        this.center = new AnchorCenter(Color.GOLD, curve, text, textWidth);
-        this.start = new Anchor(Color.TRANSPARENT, curve.startXProperty(), curve.startYProperty(), curve, center, text, textWidth, true);
-        this.end = new Anchor(Color.TRANSPARENT, curve.endXProperty(), curve.endYProperty(), curve, center, text, textWidth, false);
+        if(this.from.equals(to)){
+            if(c1.getCenterY()-c1.getRadius()==0)
+            {
+                this.curve.setStartX(c1.getCenterX()-5);
+                this.curve.setStartY(c1.getCenterY()+(c1.getRadius()+(c1.getStrokeWidth()/2))-1.5);        
+                this.curve.setEndX(c1.getCenterX()+5);
+                this.curve.setEndY(c1.getCenterY()+(c1.getRadius()+(c1.getStrokeWidth()/2))-1.5);     
+                this.curve.setControlX(c1.getCenterX());
+                this.curve.setControlY(c1.getCenterY()+70);   
+
+                this.text.setX(c1.getCenterX()-(textWidth/2));
+                this.text.setY(c1.getCenterY()+35);  
+            }
+            else{
+                this.curve.setStartX(c1.getCenterX()-5);
+                this.curve.setStartY(c1.getCenterY()-(c1.getRadius()+(c1.getStrokeWidth()/2))+1.5);        
+                this.curve.setEndX(c1.getCenterX()+5);
+                this.curve.setEndY(c1.getCenterY()-(c1.getRadius()+(c1.getStrokeWidth()/2))+1.5);     
+                this.curve.setControlX(c1.getCenterX());
+                this.curve.setControlY(c1.getCenterY()-70);   
+
+                this.text.setX(c1.getCenterX()-(textWidth/2));
+                this.text.setY(c1.getCenterY()-59);  
+            }
+        }
+        else{
+            //Calculate the start/end points of the transition            
+            double sx = calcX(c1.getCenterX(),c1.getCenterY(),c2.getCenterX(),c2.getCenterY(),c1.getRadius(),c1.getStrokeWidth());
+            double sy = calcY(c1.getCenterX(),c1.getCenterY(),c2.getCenterX(),c2.getCenterY(),c1.getRadius(),c1.getStrokeWidth());
+            double ex = calcX(c2.getCenterX(),c2.getCenterY(),c1.getCenterX(),c1.getCenterY(),c2.getRadius(),c2.getStrokeWidth());
+            double ey = calcY(c2.getCenterX(),c2.getCenterY(),c1.getCenterX(),c1.getCenterY(),c2.getRadius(),c2.getStrokeWidth());
+
+            this.curve.setStartX(sx);
+            this.curve.setStartY(sy);        
+            this.curve.setEndX(ex);
+            this.curve.setEndY(ey);
+
+            midx = (sx+ex)/2;
+            midy = (sy+ey)/2;
+            this.curve.setControlX(midx);
+            this.curve.setControlY(midy); 
+            
+            this.text.setX(midx-(textWidth/2));
+            this.text.setY(midy-12);  
+        }
+        this.curve.setStroke(Color.web("#0169CE"));
+        this.curve.setStrokeWidth(2);
+        this.curve.setStrokeLineCap(StrokeLineCap.BUTT);
+        this.curve.setFill(null);
+        
+        
+              
+        
+        this.center = new AnchorCenter(Color.GOLD, curve, text, textWidth, this);
+        this.start = new Anchor(Color.TRANSPARENT, curve.startXProperty(), curve.startYProperty(), curve, center, text, textWidth, true, from, this);
+        this.end = new Anchor(Color.TRANSPARENT, curve.endXProperty(), curve.endYProperty(), curve, center, text, textWidth, false, to, this);
         double[] arrowShape = new double[]{0, 0, 5, 10, -5, 10};
         this.arrow = new Arrow(curve, 1f, arrowShape);
         
         this.group.getChildren().addAll(this.curve, this.arrow, this.start, this.center, this.end, this.text);
-    }
+        
+        this.curve.setOnMouseClicked(new EventHandler<MouseEvent>()
+        {
+            @Override
+            public void handle(MouseEvent event)
+            {
+                if (event.getButton() == MouseButton.SECONDARY)
+                    contextMenu(event);
+                /*else
+                    afndController.transitionClicked(tController);*/
+            }
+        });
+        
+        this.curve.setOnMouseEntered(new EventHandler<MouseEvent>()
+        {
+            @Override
+            public void handle(MouseEvent event)
+            {
+                ((Node) event.getSource()).setCursor(Cursor.HAND);
+            }
+        });
+        
+        this.curve.setOnMouseExited(new EventHandler<MouseEvent>()
+        {
+            @Override
+            public void handle(MouseEvent event)
+            {
+                ((Node) event.getSource()).setCursor(Cursor.DEFAULT);
+            }
+        });
+        
+        edit.setOnAction(new EventHandler<ActionEvent>()
+        {
 
+            @Override
+            public void handle(ActionEvent event)
+            {
+                //boolean continuee = false;
+                Automaton automaton = afndController.getAutomaton();
+                String[] chars = afndController.dialogTransition("Modify");
+                if (!chars[0].isEmpty()){ 
+                    boolean existCharValid = false;
+                        for (String c : chars){
+                            Character c2 = c.charAt(0);
+                            if(automaton.getAlphabet().alphabetContains(c2)){
+                                existCharValid = true;                            
+                            }
+                            if(existCharValid)
+                                break;
+                        }
+                    
+                    if(existCharValid){                    
+                        String label = new String();
+                        for (String c : chars){
+                            Character c2 = c.charAt(0);
+                            String c2s = c2.toString();
+                            if (automaton.getAlphabet().alphabetContains(c2)){
+                                if(label.isEmpty()){                                
+                                    label = label.concat(c2s);
+                                    if(automaton instanceof NFA){
+                                        //((NFA)automaton).addTransition(from, to, c2s);
+                                    }
+                                }
+                                else
+                                    if (!label.contains(c2s))
+                                        label = label.concat(", ").concat(c2s);
+                                        if(automaton instanceof NFA){
+                                            //((NFA)automaton).addTransition(from, to, c2s);
+                                        }
+                            }
+                        }
+                        //Edit transition
+                        HashMap<String, ArrayList<StateController>> aux = afndController.getAutomaton().getF().get(from);
+                        
+                        for(Character c :afndController.getAutomaton().getAlphabet().getCharacters()){
+                            String s = c.toString();
+                            aux.get(s).remove(to);
+                        }
+                        
+                        text.setText(label);
+                        String[] tran2 = label.split(", ");
+                        
+                        for(String s2 : tran2){
+                            //if (!s.contains(s2))
+                                aux.get(s2).add(to);
+                        }
+                        
+                        
+                        FontLoader fontLoader = Toolkit.getToolkit().getFontLoader();
+                        Font font = text.getFont();
+                        float textWidth = fontLoader.computeStringWidth(label, font);
+                        text.setX(midx-(textWidth/2));
+                        
+                        
+                          
+                    }
+                }
+                
+                afndController.updateTable();              
+                
+            }
+        });
+        
+        delete.setOnAction(new EventHandler<ActionEvent>()
+        {
+
+            @Override
+            public void handle(ActionEvent event)
+            {
+                //Delete from the intersections shape
+                afndController.intersectionDeleteTransition(tController);
+                
+                //Delete from the list of transitions of the linked states
+                to.getStateModel().getToState().remove(tController);
+                from.getStateModel().getFromState().remove(tController);
+                
+                //Delete transition from the list of transitions
+                afndController.transitionsList.remove(tController);
+                afndController.transitionsRedList.remove(tController);
+                
+                //Delete from the logic
+                HashMap<String, ArrayList<StateController>> aux = afndController.getAutomaton().getF().get(from);
+                String[] tran = text.getText().split(", ");
+                for(String s : tran){
+                    aux.get(s).remove(to);
+                }
+                
+                afndController.updateTable();
+                
+                //Delete visually
+                afndController.getGroupTransitions().getChildren().remove(tController.getTransitionView().getTransition());
+                afndController.getAutomatonPane().getChildren().remove(tController.getTransitionView().getTransition());
+            }
+        });
+    }
+    
+    private void contextMenu(MouseEvent event)
+    {
+        if (event.getButton() == MouseButton.SECONDARY)
+        {
+            double x = event.getScreenX();
+            double y = event.getScreenY();
+            context.show(curve, x, y);
+        } else
+        {
+            context.hide();
+        }
+    }
+    
     public Group getTransition() {
         return this.group;
     }
-
-    private double calcX(Circle c1, Circle c2) {
-        double Ax = c1.getCenterX();
-        double Ay = c1.getCenterY();
-        double Bx = c2.getCenterX();
-        double By = c2.getCenterY();
-        double r = c1.getRadius()+(c1.getStrokeWidth()/2);
+    
+    public QuadCurve getCurve(){
+        return this.curve;
+    }
+    
+    public StateController getFrom(){
+        return this.from;
+    }
+    
+    public StateController getTo(){
+        return this.to;
+    }
+    
+    public TransitionController getTransitionController(){
+        return this.tController;
+    }
+    public void setTransitionController(TransitionController t){
+        this.tController = t;
+    }
+    
+    private double calcX(double Ax, double Ay, double Bx, double By, double radius, double strokeWidth) {
+        double r = radius+(strokeWidth/2);
         double distance = Math.sqrt(Math.pow(Bx-Ax,2) + Math.pow(By-Ay,2));
         return Ax+(r*(Bx-Ax)/distance);
     }
     
-    private double calcY(Circle c1, Circle c2) {
-        double Ax = c1.getCenterX();
-        double Ay = c1.getCenterY();
-        double Bx = c2.getCenterX();
-        double By = c2.getCenterY();
-        double r = c1.getRadius()+(c1.getStrokeWidth()/2);
+    private double calcY(double Ax, double Ay, double Bx, double By, double radius, double strokeWidth) {        
+        double r = radius+(strokeWidth/2);
         double distance = Math.sqrt(Math.pow(Bx-Ax,2) + Math.pow(By-Ay,2));
         return Ay+(r*(By-Ay)/distance);
+    }
+
+    void setRed() {
+        this.arrow.setFill(Color.RED);
+        this.curve.setStroke(Color.RED);
+    }
+    
+    void setBlue() {
+        this.arrow.setFill(Color.web("#0169CE"));
+        this.curve.setStroke(Color.web("#0169CE"));
     }
 
     
@@ -204,7 +430,7 @@ public class TransitionView {
 
     class Anchor extends Circle {
 
-        Anchor(Color color, DoubleProperty x, DoubleProperty y, QuadCurve curve, AnchorCenter center, Text text, float labelWidth, boolean isStart) {
+        Anchor(Color color, DoubleProperty x, DoubleProperty y, QuadCurve curve, AnchorCenter center, Text text, float labelWidth, boolean isStart, StateController state, TransitionView t) {
             super(x.get(), y.get(), 10);
 
             setFill(color.deriveColor(1, 1, 1, 0.5));
@@ -214,11 +440,11 @@ public class TransitionView {
 
             x.bind(centerXProperty());
             y.bind(centerYProperty());
-            //enableDrag(curve, center, text, labelWidth, isStart);
+            enableDrag(curve, center, text, labelWidth, isStart, state, t);
         }
 
         // make a node movable by dragging it around with the mouse.
-        private void enableDrag(QuadCurve curve, AnchorCenter center, Text text, float labelWidth, boolean isStart) {
+        private void enableDrag(QuadCurve curve, AnchorCenter center, Text text, float labelWidth, boolean isStart, StateController state, TransitionView t) {
             final Delta dragDelta = new Delta();
             setOnMousePressed(new EventHandler<MouseEvent>() {
                 @Override
@@ -226,13 +452,18 @@ public class TransitionView {
                     // record a delta distance for the drag and drop operation.
                     dragDelta.x = getCenterX() - mouseEvent.getX();
                     dragDelta.y = getCenterY() - mouseEvent.getY();
-                    getScene().setCursor(Cursor.MOVE);
+                    getScene().setCursor(Cursor.CLOSED_HAND);
+                    afndController.intersectionDeleteTransition(t.getTransitionController());
                 }
             });
             setOnMouseReleased(new EventHandler<MouseEvent>() {
                 @Override
                 public void handle(MouseEvent mouseEvent) {
-                    getScene().setCursor(Cursor.HAND);
+                    getScene().setCursor(Cursor.OPEN_HAND);
+                    if(afndController.intersectionAddTransition(t.getTransitionController()))
+                        t.setRed();                    
+                    else
+                        t.setBlue();
                 }
             });
             setOnMouseDragged(new EventHandler<MouseEvent>() {
@@ -240,7 +471,7 @@ public class TransitionView {
                 public void handle(MouseEvent mouseEvent) {
                     double newX = mouseEvent.getX() + dragDelta.x;
                     if (newX > getRadius() && newX < canvasWidth-getRadius()) {
-                        setCenterX(newX);
+                        //setCenterX(newX);
                         if (isStart) {
                             center.setX((curve.endXProperty().get() + newX) * 0.25 + 0.5 * curve.controlXProperty().get());
                         }
@@ -252,7 +483,7 @@ public class TransitionView {
                     }
                     double newY = mouseEvent.getY() + dragDelta.y;
                     if (newY > getRadius() && newY < canvasHeight-getRadius()) {
-                        setCenterY(newY);
+                        //setCenterY(newY);
                         if (isStart) {
                             center.setY((curve.endYProperty().get() + newY) * 0.25 + 0.5 * curve.controlYProperty().get());
                             
@@ -262,6 +493,12 @@ public class TransitionView {
                         }
                         text.setY(center.getY()-10);
 
+                    }
+                    if(newX > getRadius() && newX < canvasWidth-getRadius() && newY > getRadius() && newY < canvasHeight-getRadius()){
+                        Circle c = state.getStateView().getCircle();
+                        setCenterX(calcX(c.getCenterX(), c.getCenterY(), newX, newY, c.getRadius(), c.getStrokeWidth()));
+                        setCenterY(calcY(c.getCenterX(), c.getCenterY(), newX, newY, c.getRadius(), c.getStrokeWidth()));
+                        
                     }
 
                     // update arrow position          
@@ -273,7 +510,7 @@ public class TransitionView {
                 @Override
                 public void handle(MouseEvent mouseEvent) {
                     if (!mouseEvent.isPrimaryButtonDown()) {
-                        getScene().setCursor(Cursor.HAND);
+                        getScene().setCursor(Cursor.OPEN_HAND);
                     }
                 }
             });
@@ -295,7 +532,7 @@ public class TransitionView {
 
     class AnchorCenter extends Circle {
 
-        AnchorCenter(Color color, QuadCurve curve, Text text, float labelWidth) {
+        AnchorCenter(Color color, QuadCurve curve, Text text, float labelWidth, TransitionView t) {
             DoubleProperty x = curve.controlXProperty();
             DoubleProperty y = curve.controlYProperty();
             DoubleProperty sx = curve.startXProperty();
@@ -311,11 +548,11 @@ public class TransitionView {
             setStrokeWidth(1);
             setStrokeType(StrokeType.OUTSIDE);
 
-            enableDrag(curve, text, labelWidth);
+            enableDrag(curve, text, labelWidth, t);
         }
 
         // make a node movable by dragging it around with the mouse.
-        private void enableDrag(QuadCurve curve, Text text, float labelWidth) {
+        private void enableDrag(QuadCurve curve, Text text, float labelWidth, TransitionView t) {
             final Delta dragDelta = new Delta();
             setOnMousePressed(new EventHandler<MouseEvent>() {
                 @Override
@@ -324,12 +561,17 @@ public class TransitionView {
                     dragDelta.x = getCenterX() - mouseEvent.getX();
                     dragDelta.y = getCenterY() - mouseEvent.getY();
                     getScene().setCursor(Cursor.CLOSED_HAND);
+                    afndController.intersectionDeleteTransition(t.getTransitionController());
                 }
             });
             setOnMouseReleased(new EventHandler<MouseEvent>() {
                 @Override
                 public void handle(MouseEvent mouseEvent) {
                     getScene().setCursor(Cursor.OPEN_HAND);
+                    if(afndController.intersectionAddTransition(t.getTransitionController()))
+                        t.setRed();                    
+                    else
+                        t.setBlue();
                 }
             });
             setOnMouseDragged(new EventHandler<MouseEvent>() {

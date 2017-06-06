@@ -13,7 +13,6 @@ import javafx.scene.input.MouseEvent;
  */
 public class StateController implements Comparable<StateController>
 {
-
     private State model;
     private StateView view;
 
@@ -23,44 +22,46 @@ public class StateController implements Comparable<StateController>
         this.view = view;
     }
     
-    public void setStateInitial(Boolean initial)
-    {
-        model.setInitial();
-    }
-    
-    public boolean isStateInitial()
-    {
-        return model.isInitial();
-    }
-    
-    public void setStateLabel(String label)
-    {
-        model.setLabel(label);
-    }
-    
-    public String getStateLabel()
-    {
-        return model.getLabel();
+    public boolean fromStateContains(TransitionController o) {
+        return this.model.fromStateContains(o);
     }
 
-    public boolean isStateActive()
-    {
-        return model.isActive();
+    public TransitionController fromStateGet(int index) {
+        return this.model.fromStateGet(index);
     }
 
-    public void setStateActive(boolean active)
-    {
-        model.setActive(active);
+    public boolean fromStateAdd(TransitionController e) {
+        return this.model.fromStateAdd(e);
+    }
+
+    public boolean fromStateRemove(TransitionController o) {
+        return this.model.fromStateRemove(o);
     }
     
-    private State getState()
+    public boolean toStateContains(TransitionController o) {
+        return this.model.toStateContains(o);
+    }
+
+    public TransitionController toStateGet(int index) {
+        return this.model.toStateGet(index);
+    }
+
+    public boolean toStateAdd(TransitionController e) {
+        return this.model.toStateAdd(e);
+    }
+
+    public boolean toStateRemove(TransitionController o) {
+        return this.model.toStateRemove(o);
+    }
+    
+    public State getStateModel()
     {
         return this.model;
     }
     
     public void drawNode(Group g)
     {
-        this.view.drawNode(g);
+        this.view.drawState(g);
     }
     
     public StateView getStateView(){
@@ -72,5 +73,5 @@ public class StateController implements Comparable<StateController>
     {
         return this.view.compareTo(o.getStateView());
     }
-    
+   
 }

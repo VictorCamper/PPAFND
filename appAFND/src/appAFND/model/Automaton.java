@@ -9,6 +9,7 @@ import appAFND.controller.AlphabetController;
 import appAFND.controller.StateController;
 import java.util.ArrayList;
 import java.util.HashMap;
+import javafx.scene.control.Alert;
 
 
 /**
@@ -36,32 +37,6 @@ public abstract class Automaton {
     
     abstract boolean removeTransition(StateController from, StateController to, String transition);
     
-    public boolean readWord(String word){
-        boolean valid = true;
-        char[] characters = word.toCharArray();
-        
-        for (char c : characters){
-            if (!alphabet.alphabetContains(c)){
-                valid = false; 
-                //Error, the word have a character that isn't in the alphabet of the automaton.  
-            }            
-        }
-        
-        if (valid){
-            /*
-            ArrayList<StateController> statesVoid = f.get(initialState).get("");
-            ArrayList<StateController> statesChar = f.get(initialState).get("");*/
-            
-            //If ends in a final state
-            return true;
-            //Else
-            //return false;
-        }
-        
-        return false;
-        
-    }
-
     public ArrayList<StateController> getStates() {
         return states;
     }
@@ -72,6 +47,10 @@ public abstract class Automaton {
     
     public boolean addState(StateController state){
         this.f.put(state, new HashMap<String, ArrayList<StateController>>());
+        for(Character c :this.alphabet.getCharacters()){
+            String s = c.toString();
+            this.f.get(state).put(s,new ArrayList<>());
+        }
         return this.states.add(state);
     }
     
@@ -118,4 +97,130 @@ public abstract class Automaton {
     public void setFinalStates(ArrayList<StateController> finalStates) {
         this.finalStates = finalStates;
     }
+    
+    public boolean readWord(String word){
+        boolean valid = true;
+        char[] characters = word.toCharArray();
+        //Mensaje
+        Alert accepted = new Alert(Alert.AlertType.INFORMATION);
+        accepted.setTitle("Word accepted");
+        accepted.setHeaderText("The word was accepted!");
+        
+        Alert refuse = new Alert(Alert.AlertType.ERROR);
+        refuse.setTitle("Not accepted");
+        refuse.setHeaderText("The word was not accepted!");
+        
+        for (char c : characters){
+            if (!alphabet.alphabetContains(c)){
+                // Alerta por si la letra no esta contenida en el alfabeto.
+                // Rellenar la alerta.
+                Alert emptyAlert = new Alert(Alert.AlertType.ERROR);
+                emptyAlert.setTitle("Word error");
+                emptyAlert.setHeaderText("Some of the characters are not contained in the alphabet");
+                emptyAlert.showAndWait();
+                //valid = false; 
+                return false;
+                //Error, the word have a character that isn't in the alphabet of the automaton.  
+            }            
+        }
+        
+        ArrayList<StateController> activos = new ArrayList<>();
+        ArrayList<StateController> nuevos = new ArrayList<>();
+
+        activos.add(initialState);
+        nuevos.add(initialState);
+
+
+        for(int i = 0; i < characters.length ; i++){
+            //Revisar si los nuevos tienen transiciones vacias
+            //Se agregan las transiciones vacias a nuevoaux
+            while(!(nuevos.isEmpty()))
+            {
+                //System.out.println("hola");
+                ArrayList<StateController> nuevosaux = new ArrayList();
+                for(StateController nuevo : nuevos){                    
+                    if(!(f.get(nuevo).get("\u03BB").isEmpty())){
+                        if(f.get(nuevo).get("\u03BB").contains(nuevo)){
+                            for(StateController s :f.get(nuevo).get("\u03BB")){
+                                if(s.compareTo(nuevo)!=0)
+                                    nuevosaux.add(s);
+                            }
+                        }
+                        else
+                            nuevosaux.addAll(f.get(nuevo).get("\u03BB"));
+                    }
+                }
+                //La lista de nuevos = nuevosaux
+                nuevos.clear();
+                nuevos.addAll(nuevosaux);
+
+                //Agregar a los activos los nuevos
+                activos.addAll(nuevos);
+
+            }
+            //System.out.println(activos);
+
+            //Leer caracter
+            //Agregar a los activos
+            ArrayList<StateController> activosaux = new ArrayList();
+            //boolean canContinue = true;
+            for(StateController activo : activos){
+                activosaux.addAll(f.get(activo).get(((Character)characters[i]).toString()));
+                /*if(f.get(activo).get(((Character)characters[i]).toString()).isEmpty())
+                    activosaux.remove(activo);*/
+            }
+            /*System.out.println(canContinue);
+            if (!canContinue){
+                refuse.showAndWait();
+                return false;
+            }*/
+            
+            activos.clear();
+            activos.addAll(activosaux);
+            nuevos.clear();
+            nuevos.addAll(activos);
+
+            if(activos.isEmpty()){
+               refuse.showAndWait();
+               return false;
+            }
+
+            
+
+        }
+        
+        while(!(nuevos.isEmpty()))
+            {
+                //System.out.println("hola");
+                ArrayList<StateController> nuevosaux = new ArrayList();
+                for(StateController nuevo : nuevos){
+                    if(!(f.get(nuevo).get("\u03BB").isEmpty())){
+                        nuevosaux.addAll(f.get(nuevo).get("\u03BB"));
+                    }
+                }
+                //La lista de nuevos = nuevosaux
+                nuevos.clear();
+                nuevos.addAll(nuevosaux);
+
+                //Agregar a los activos los nuevos
+                activos.addAll(nuevos);
+
+            }
+        
+        for(StateController activo : activos){
+            //System.out.println("activo:"+activo.getStateLabel());
+            if (finalStates.contains(activo)){
+                accepted.showAndWait();
+                return true;
+            }
+        }
+
+            
+              
+        
+        refuse.showAndWait();
+        return false;
+
+    }
+    
 }

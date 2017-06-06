@@ -5,45 +5,41 @@
  */
 package appAFND.model;
 
+import appAFND.controller.StateController;
+
 /**
  *
  * @author felipe
  */
 public class Transition
 {
-    public State from;
-    public State to;
-    public String label;
 
-    public State getFrom()
+    public Transition(StateController from, StateController to) {
+        this.from = from;
+        this.to = to;
+    }
+    
+    public StateController from;
+    public StateController to;
+
+    public StateController getFrom()
     {
         return from;
     }
 
-    public void setFrom(State from)
+    public void setFrom(StateController from)
     {
         this.from = from;
     }
 
-    public State getTo()
+    public StateController getTo()
     {
         return to;
     }
 
-    public void setTo(State to)
+    public void setTo(StateController to)
     {
         this.to = to;
-    }
-
-    public String getLabel()
-    {
-        return label;
-    }
-
-    public void setLabel(String label)
-    {
-        this.label = label;
-    }
-    
+    }    
     
 }
