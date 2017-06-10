@@ -176,61 +176,63 @@ public class TransitionView {
                 //boolean continuee = false;
                 Automaton automaton = afndController.getAutomaton();
                 String[] chars = afndController.dialogTransition("Modify");
-                if (!chars[0].isEmpty()){ 
-                    boolean existCharValid = false;
-                        for (String c : chars){
-                            Character c2 = c.charAt(0);
-                            if(automaton.getAlphabet().alphabetContains(c2)){
-                                existCharValid = true;                            
-                            }
-                            if(existCharValid)
-                                break;
-                        }
-                    
-                    if(existCharValid){                    
-                        String label = new String();
-                        for (String c : chars){
-                            Character c2 = c.charAt(0);
-                            String c2s = c2.toString();
-                            if (automaton.getAlphabet().alphabetContains(c2)){
-                                if(label.isEmpty()){                                
-                                    label = label.concat(c2s);
-                                    if(automaton instanceof NFA){
-                                        //((NFA)automaton).addTransition(from, to, c2s);
-                                    }
+                if(chars!=null){
+                    if (!chars[0].isEmpty()){ 
+                        boolean existCharValid = false;
+                            for (String c : chars){
+                                Character c2 = c.charAt(0);
+                                if(automaton.getAlphabet().alphabetContains(c2)){
+                                    existCharValid = true;                            
                                 }
-                                else
-                                    if (!label.contains(c2s))
-                                        label = label.concat(", ").concat(c2s);
+                                if(existCharValid)
+                                    break;
+                            }
+
+                        if(existCharValid){                    
+                            String label = new String();
+                            for (String c : chars){
+                                Character c2 = c.charAt(0);
+                                String c2s = c2.toString();
+                                if (automaton.getAlphabet().alphabetContains(c2)){
+                                    if(label.isEmpty()){                                
+                                        label = label.concat(c2s);
                                         if(automaton instanceof NFA){
                                             //((NFA)automaton).addTransition(from, to, c2s);
                                         }
+                                    }
+                                    else
+                                        if (!label.contains(c2s))
+                                            label = label.concat(", ").concat(c2s);
+                                            if(automaton instanceof NFA){
+                                                //((NFA)automaton).addTransition(from, to, c2s);
+                                            }
+                                }
                             }
+                            //Edit transition
+                            HashMap<String, ArrayList<StateController>> aux = afndController.getAutomaton().getF().get(from);
+
+                            for(Character c :afndController.getAutomaton().getAlphabet().getCharacters()){
+                                String s = c.toString();
+                                aux.get(s).remove(to);
+                            }
+
+                            text.setText(label);
+                            String[] tran2 = label.split(", ");
+
+                            for(String s2 : tran2){
+                                //if (!s.contains(s2))
+                                    aux.get(s2).add(to);
+                            }
+
+
+                            FontLoader fontLoader = Toolkit.getToolkit().getFontLoader();
+                            Font font = text.getFont();
+                            float textWidth = fontLoader.computeStringWidth(label, font);
+                            text.setX(midx-(textWidth/2));
+
+
+
                         }
-                        //Edit transition
-                        HashMap<String, ArrayList<StateController>> aux = afndController.getAutomaton().getF().get(from);
-                        
-                        for(Character c :afndController.getAutomaton().getAlphabet().getCharacters()){
-                            String s = c.toString();
-                            aux.get(s).remove(to);
-                        }
-                        
-                        text.setText(label);
-                        String[] tran2 = label.split(", ");
-                        
-                        for(String s2 : tran2){
-                            //if (!s.contains(s2))
-                                aux.get(s2).add(to);
-                        }
-                        
-                        
-                        FontLoader fontLoader = Toolkit.getToolkit().getFontLoader();
-                        Font font = text.getFont();
-                        float textWidth = fontLoader.computeStringWidth(label, font);
-                        text.setX(midx-(textWidth/2));
-                        
-                        
-                          
                     }
                 }
                 

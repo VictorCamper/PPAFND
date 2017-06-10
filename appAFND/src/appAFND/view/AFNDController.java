@@ -23,20 +23,30 @@ import appAFND.model.Dijkstra;
 import appAFND.model.NFA;
 import appAFND.model.State;
 import appAFND.model.Transition;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
+import javafx.print.PageLayout;
+import javafx.print.PageOrientation;
+import javafx.print.Paper;
+import javafx.print.Printer;
+import javafx.print.PrinterJob;
 import javafx.scene.Group;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Alert;
@@ -64,7 +74,9 @@ import javafx.scene.shape.QuadCurve;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Scale;
 import javafx.util.Pair;
+import javax.imageio.ImageIO;
 import org.controlsfx.control.spreadsheet.GridBase;
 import org.controlsfx.control.spreadsheet.SpreadsheetCell;
 import org.controlsfx.control.spreadsheet.SpreadsheetCellType;
@@ -99,8 +111,6 @@ public class AFNDController implements Initializable
     @FXML
     private Menu menuHelp;
     @FXML
-    private Button buttonMove;
-    @FXML
     private ToggleButton buttonState;
     @FXML
     private ToggleButton buttonTransition;
@@ -134,8 +144,6 @@ public class AFNDController implements Initializable
     private Automaton automaton;
     @FXML
     private TextField wordField;
-    @FXML
-    private Button buttonExecute;
 
     int stateCounter;
     @FXML
@@ -146,6 +154,11 @@ public class AFNDController implements Initializable
     private Color colorStateFinal = Color.web("#006485");
     private Color colorState = Color.DEEPSKYBLUE;
     private Color colorStateIntersect = Color.CRIMSON;
+    @FXML
+    private Button buttonRead;
+    @FXML
+    private Button buttonStep;
+    
     /**
      * Initializes the controller class.
      */
@@ -556,65 +569,67 @@ public class AFNDController implements Initializable
                 if(!doubleTransition){
                     
                     String[] chars = dialogTransition("Create");
-
+                    
                     buttonTransition.fire();
-
-                    if (!chars[0].isEmpty()){  
-                        //Verify if any character exist in the alphabet
-                        boolean existCharValid = false;
-                        for (String c : chars){
-                            Character c2 = c.charAt(0);
-                            if(automaton.getAlphabet().alphabetContains(c2)){
-                                existCharValid = true;                            
-                            }
-                            if(existCharValid)
-                                break;
-                        }
-                        if(existCharValid){                    
-                            String label = new String();
+                    if(chars!=null){
+                        if (!chars[0].isEmpty()){  
+                            //Verify if any character exist in the alphabet
+                            boolean existCharValid = false;
                             for (String c : chars){
                                 Character c2 = c.charAt(0);
-                                String c2s = c2.toString();
-                                if (automaton.getAlphabet().alphabetContains(c2)){
-                                    if(label.isEmpty()){                                
-                                        label = label.concat(c2s);
-                                        if(this.automaton instanceof NFA){
-                                            ((NFA)this.automaton).addTransition(transitionStateFrom, transitionStateTo, c2s);
-                                        }
-                                    }
-                                    else
-                                        if (!label.contains(c2s))
-                                            label = label.concat(", ").concat(c2s);
+                                if(automaton.getAlphabet().alphabetContains(c2)){
+                                    existCharValid = true;                            
+                                }
+                                if(existCharValid)
+                                    break;
+                            }
+                            if(existCharValid){                    
+                                String label = new String();
+                                for (String c : chars){
+                                    Character c2 = c.charAt(0);
+                                    String c2s = c2.toString();
+                                    if (automaton.getAlphabet().alphabetContains(c2)){
+                                        if(label.isEmpty()){                                
+                                            label = label.concat(c2s);
                                             if(this.automaton instanceof NFA){
                                                 ((NFA)this.automaton).addTransition(transitionStateFrom, transitionStateTo, c2s);
                                             }
+                                        }
+                                        else
+                                            if (!label.contains(c2s))
+                                                label = label.concat(", ").concat(c2s);
+                                                if(this.automaton instanceof NFA){
+                                                    ((NFA)this.automaton).addTransition(transitionStateFrom, transitionStateTo, c2s);
+                                                }
+                                    }
                                 }
-                            }
 
-                            Transition transitionmodel = new Transition(this.transitionStateFrom, this.transitionStateTo);                    
-                            TransitionView transitionview = new TransitionView(this.transitionStateFrom, this.transitionStateTo, label, this.canvasHeight, this.canvasWidth, this);
-                            TransitionController transitionController = new TransitionController(transitionmodel, transitionview);
-                            transitionview.setTransitionController(transitionController);
-                            
-                            transitionStateFrom.fromStateAdd(transitionController);
-                            transitionStateTo.toStateAdd(transitionController);
-                            
-                            //Intersection->Transition red
-                            if(intersectionAddTransition(transitionController)){
-                                transitionController.getTransitionView().setRed();
-                                //Add the red transition to a list apart
-                                transitionsRedList.add(transitionController);
-                            }
-                            else{
-                                transitionsList.add(transitionController);
-                            }
-                            
-                            groupTransitions.getChildren().add(transitionview.getTransition());
-                            
+                                Transition transitionmodel = new Transition(this.transitionStateFrom, this.transitionStateTo);                    
+                                TransitionView transitionview = new TransitionView(this.transitionStateFrom, this.transitionStateTo, label, this.canvasHeight, this.canvasWidth, this);
+                                TransitionController transitionController = new TransitionController(transitionmodel, transitionview);
+                                transitionview.setTransitionController(transitionController);
 
-                            this.updateTable();
-                        }
-                    }  
+                                transitionStateFrom.fromStateAdd(transitionController);
+                                transitionStateTo.toStateAdd(transitionController);
+
+                                //Intersection->Transition red
+                                if(intersectionAddTransition(transitionController)){
+                                    transitionController.getTransitionView().setRed();
+                                    //Add the red transition to a list apart
+                                    transitionsRedList.add(transitionController);
+                                }
+                                else{
+                                    transitionsList.add(transitionController);
+                                }
+
+                                groupTransitions.getChildren().add(transitionview.getTransition());
+
+
+                                this.updateTable();
+                            }
+                        }  
+                    }
+                    
                 }
                 else{
                     Alert doubleT = new Alert(Alert.AlertType.ERROR);
@@ -698,11 +713,12 @@ public class AFNDController implements Initializable
         // Create the custom dialog.
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("New transition");
-        dialog.setHeaderText("Introduce the characters for the transition (separated by comma ,)");
+        dialog.setHeaderText("Introduce the characters for the transition.\nOnly are accepted the characters cointained in the alphabet of the automaton.");
 
         // Set the button types.
         ButtonType loginButtonType = new ButtonType(buttonLabel, ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
+        ButtonType cancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, cancel);
 
         // Create the username and password labels and fields.
         GridPane grid = new GridPane();
@@ -713,6 +729,30 @@ public class AFNDController implements Initializable
         TextField characters = new TextField();
         characters.setPromptText("Characters");
         CheckBox voidChar = new CheckBox();
+        characters.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(final ObservableValue<? extends String> observable, final String oldValue, String newValue) {
+                String result = "";
+                String[] letters = newValue.replace(",", "").replace(" ", "").split("");   
+                if(!letters[0].isEmpty())
+                    if(automaton.getAlphabet().getCharacters().contains(letters[0].charAt(0)))
+                        result = letters[0];
+                
+                for(int i=1; i<letters.length; i++){
+                    if(automaton.getAlphabet().getCharacters().contains(letters[i].charAt(0))){
+                        boolean repeated = false;
+                        for(int j=0; j<i; j++){
+                            if(letters[i].equals(letters[j]))
+                                repeated = true;
+                        }
+                            if(!repeated)
+                                result = result+","+(letters[i]);  
+                    }                              
+                }
+                
+                characters.setText(result);
+            }
+        });
 
         grid.add(new Label("Characters:"), 0, 0);
         grid.add(characters, 1, 0);
@@ -754,7 +794,22 @@ public class AFNDController implements Initializable
         Platform.runLater(() -> characters.requestFocus());
 
 
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == loginButtonType) {
+                if (voidChar.isSelected())
+                    return new Pair<>(characters.getText(), "true");
+                else
+                    return new Pair<>(characters.getText(), "false");
+            }
+            return null;
+        });
+        
         Optional<Pair<String, String>> result = dialog.showAndWait();
+        
+        
+        
+        if(!result.isPresent())
+            return null;
         
         if(voidChar.isSelected()){
             String[] chars = ("\u03BB,".concat(characters.getText())).replaceAll("\\s","").split(",");
@@ -1495,5 +1550,26 @@ public class AFNDController implements Initializable
         this.transitionsRedList.removeAll(transitions);
     }
 
+    @FXML
+    private void readWordStep(ActionEvent event) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @FXML
+    private void print(ActionEvent event) {
+        WritableImage image1 = automatonPane.snapshot(new SnapshotParameters(), null);
+        File file = new File("canvas.png");
+        try {
+            ImageIO.write(SwingFXUtils.fromFXImage(image1, null), "png", file);
+        } catch (IOException e) {
+        } 
+        
+        WritableImage image2 = spreadSheet.snapshot(new SnapshotParameters(), null);
+        File file2 = new File("table.png");
+        try {
+            ImageIO.write(SwingFXUtils.fromFXImage(image2, null), "png", file2);
+        } catch (IOException e) {
+        } 
+    }
     
 }
