@@ -119,9 +119,11 @@ public class StateView implements Comparable<StateView>
                      HashMap<String, ArrayList<StateController>> aux = afndcontroller.getAutomaton().getF().get(from);
                      for(Character word : afndcontroller.getAutomaton().getAlphabet().getCharacters())
                      {
-                         if(aux.get(word.toString()) != null)
+                        if(aux.get(word.toString()) != null){
                             aux.get(word.toString()).remove(controller);
+                        }
                      }
+                     afndcontroller.intersectionDeleteTransition(transition);
                  }
 
                 afndcontroller.getAutomaton().getF().remove(controller);
