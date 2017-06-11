@@ -23,6 +23,13 @@ import appAFND.model.Dijkstra;
 import appAFND.model.NFA;
 import appAFND.model.State;
 import appAFND.model.Transition;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
@@ -484,6 +491,57 @@ public class AFNDController implements Initializable
         this.splitPane.setDividerPositions(divider);
         this.splitPane.getItems().add(this.spreadSheet);
         //this.splitPane.setDividerPositions(0.95);    
+    }
+    
+    
+    private SpreadsheetView getTableCopy()
+    {
+        try
+        {
+            FileOutputStream file = new FileOutputStream("tableView.dat");
+            BufferedOutputStream buffer = new BufferedOutputStream(file);
+            ObjectOutputStream output = new ObjectOutputStream(buffer);
+            output.writeObject(this.spreadSheet);
+            output.close();
+            buffer.close();
+            file.close();
+        }
+        catch(Exception ex)
+        {
+            System.out.println("A problem was ocurred with the exportation.");
+        }
+        
+        
+        SpreadsheetView table;
+        try
+        {
+            File archivo = new File("tableView.dat");
+            if (archivo.exists()) {
+                FileInputStream file = new FileInputStream(archivo);
+                BufferedInputStream buffer = new BufferedInputStream(file);
+                ObjectInputStream input = new ObjectInputStream(buffer);
+
+                Object object = input.readObject();
+                if( object instanceof SpreadsheetView )
+                {
+                    table = (SpreadsheetView) object;
+                    ObservableList<SpreadsheetColumn> columns = table.getColumns();
+                    if(columns.get(0).isColumnFixable())
+                        table.getFixedColumns().remove(columns.get(0));
+                    if(this.spreadSheet.isRowFixable(0))
+                        this.spreadSheet.getFixedRows().remove(0);
+                    return table;
+                }
+            }
+            
+            
+        }
+        catch(Exception ex)
+        {
+            System.out.println("Table can't be loaded");
+        } 
+        
+        return null;
     }
     
     private void dialogInitial()
