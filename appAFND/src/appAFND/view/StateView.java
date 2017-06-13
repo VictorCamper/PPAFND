@@ -72,16 +72,7 @@ public class StateView implements Comparable<StateView>
         ft.setDuration(new Duration(500));
         ft.setToValue(Color.GOLD);
         ft.setCycleCount(Timeline.INDEFINITE);
-        ft.setAutoReverse(true);
-        
-        
-        /*pause
-            ft.jumpTo(Duration.ZERO);
-            ft.pause();
-            st.jumpTo(Duration.ZERO);
-            st.pause();     
-        */
-        
+        ft.setAutoReverse(true);        
         
         String label = name;
         this.text = new Text(label);
@@ -231,6 +222,72 @@ public class StateView implements Comparable<StateView>
             
         });
         
+    }
+    
+    public void playStepAnimation(){
+        ft.play();
+        st.play();
+    }
+    
+    public void playAcceptAnimation(){
+        ft.setCycleCount(4);
+        st.setCycleCount(4);
+        
+        ft.setToValue(Color.LIMEGREEN);
+        if(afndcontroller.getAutomaton().getFinalStates().contains(controller))          
+            st.setToValue(Color.GREEN);
+        
+        else
+            st.setToValue(Color.LIMEGREEN);
+        
+        ft.play();
+        st.play();
+        
+        ft.setCycleCount(Timeline.INDEFINITE);
+        st.setCycleCount(Timeline.INDEFINITE);
+        
+        ft.setToValue(Color.GOLD);
+        if(afndcontroller.getAutomaton().getFinalStates().contains(controller)){
+            st.setToValue(Color.ORANGE);
+        }
+        else{
+            st.setToValue(Color.GOLD);
+        }
+        
+    }
+    
+    public void playRejectAnimation(){
+        ft.setCycleCount(4);
+        st.setCycleCount(4);
+        
+        ft.setToValue(Color.TOMATO);
+        if(afndcontroller.getAutomaton().getFinalStates().contains(controller))          
+            st.setToValue(Color.CRIMSON);
+        
+        else
+            st.setToValue(Color.TOMATO);
+        
+        ft.play();
+        st.play();
+        
+        ft.setCycleCount(Timeline.INDEFINITE);
+        st.setCycleCount(Timeline.INDEFINITE);
+        
+        ft.setToValue(Color.GOLD);
+        if(afndcontroller.getAutomaton().getFinalStates().contains(controller)){
+            st.setToValue(Color.ORANGE);
+        }
+        else{
+            st.setToValue(Color.GOLD);
+        }
+        
+    }
+    
+    public void pauseStepAnimation(){
+        ft.jumpTo(Duration.ZERO);
+        ft.pause();
+        st.jumpTo(Duration.ZERO);
+        st.pause(); 
     }
 
     public void setController(StateController controller) {

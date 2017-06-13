@@ -28,8 +28,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.UnaryOperator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.StringProperty;
@@ -62,9 +69,11 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -158,6 +167,8 @@ public class AFNDController implements Initializable
     private Button buttonRead;
     @FXML
     private Button buttonStep;
+    private int stepCounter=0;
+    private String stepWord = new String();
     
     /**
      * Initializes the controller class.
@@ -522,7 +533,7 @@ public class AFNDController implements Initializable
                     if(!alphController.alphabetContains(str.charAt(0))) 
                         alphController.addCharacter(str.charAt(0));
                 }
-                this.automaton = new NFA(new ArrayList<>(), alphController, new ArrayList<>(), null);
+                this.automaton = new NFA(new ArrayList<>(), alphController, new ArrayList<>(), null, this);
             }
             catch(Exception ex)
             {
@@ -571,7 +582,7 @@ public class AFNDController implements Initializable
                     String[] chars = dialogTransition("Create");
                     
                     buttonTransition.fire();
-                    if(chars!=null){
+                    if(chars.length>0){
                         if (!chars[0].isEmpty()){  
                             //Verify if any character exist in the alphabet
                             boolean existCharValid = false;
@@ -709,7 +720,7 @@ public class AFNDController implements Initializable
         });*/
     }
 
-    String[] dialogTransition(String buttonLabel) {
+    String[] dialogTransition(String buttonLabel){
         // Create the custom dialog.
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("New transition");
@@ -729,14 +740,89 @@ public class AFNDController implements Initializable
         TextField characters = new TextField();
         characters.setPromptText("Characters");
         CheckBox voidChar = new CheckBox();
-        characters.textProperty().addListener(new ChangeListener<String>() {
+        
+        UnaryOperator<TextFormatter.Change> filter = new UnaryOperator<TextFormatter.Change>() {
+
+            @Override
+            public TextFormatter.Change apply(TextFormatter.Change t) {
+
+                if(t.isAdded()){
+                    if(!t.getText().isEmpty()){
+                        
+                        if(!automaton.getAlphabet().getCharacters().contains(t.getText().charAt(0))){
+                            t.setText("");
+                        }
+
+                        else{
+                            if(t.getControlNewText().length()>1){
+                                if(!t.getControlText().contains(t.getText())){
+                                    t.setText(", ".concat(t.getText()));
+                                    t.selectRange(t.getCaretPosition()+2, t.getCaretPosition()+2);
+                                }
+                                else
+                                    t.setText("");
+                                
+                            }
+                        }
+                        
+                    }                    
+                }
+
+                return t;
+            }
+        };
+        
+        characters.setTextFormatter(new TextFormatter<>(filter));
+        
+        characters.caretPositionProperty().addListener(new InvalidationListener() {
+            @Override
+            public void invalidated(Observable observable) {
+                Platform.runLater(new Runnable() {
+                @Override public void run() {
+                  characters.deselect();
+                  characters.positionCaret(characters.getText().length());
+                }
+              });
+            }
+        });
+        
+        characters.addEventFilter(KeyEvent.ANY, new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent keyEvent) {
+                switch (keyEvent.getCode()) {
+                    // block cursor control keys.
+                    case BACK_SPACE:
+                        characters.deletePreviousChar();
+                        break;
+                    case LEFT:
+                    case RIGHT:
+                    case UP:
+                    case DOWN:
+                    case PAGE_UP:
+                    case PAGE_DOWN:
+                    case HOME:
+                    case END:
+                        keyEvent.consume();
+
+                }
+            }
+        });
+        
+        
+        
+        
+        
+        /*characters.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(final ObservableValue<? extends String> observable, final String oldValue, String newValue) {
                 String result = "";
                 String[] letters = newValue.replace(",", "").replace(" ", "").split("");   
-                if(!letters[0].isEmpty())
-                    if(automaton.getAlphabet().getCharacters().contains(letters[0].charAt(0)))
+                if(!letters[0].isEmpty()){
+                    if(automaton.getAlphabet().getCharacters().contains(letters[0].charAt(0))){
                         result = letters[0];
+                    }
+                }
+                    
                 
                 for(int i=1; i<letters.length; i++){
                     if(automaton.getAlphabet().getCharacters().contains(letters[i].charAt(0))){
@@ -746,13 +832,14 @@ public class AFNDController implements Initializable
                                 repeated = true;
                         }
                             if(!repeated)
-                                result = result+","+(letters[i]);  
+                                result = result+", "+(letters[i]);  
                     }                              
                 }
                 
                 characters.setText(result);
+                
             }
-        });
+        });*/
 
         grid.add(new Label("Characters:"), 0, 0);
         grid.add(characters, 1, 0);
@@ -806,10 +893,8 @@ public class AFNDController implements Initializable
         
         Optional<Pair<String, String>> result = dialog.showAndWait();
         
-        
-        
         if(!result.isPresent())
-            return null;
+            return new String[0];
         
         if(voidChar.isSelected()){
             String[] chars = ("\u03BB,".concat(characters.getText())).replaceAll("\\s","").split(",");
@@ -824,13 +909,7 @@ public class AFNDController implements Initializable
     @FXML
     private boolean readWord(ActionEvent event)
     {
-        if(automaton.getFinalStates().isEmpty()){
-            Alert result = new Alert(Alert.AlertType.ERROR);
-            result.setTitle("Final state error");
-            result.setHeaderText("There are no final states");
-            result.showAndWait();
-            return false;
-        }
+        
         
         /*for(StateController s : statesList){            
             if(s.compareTo(automaton.getInitialState())!=0 && s.getStateModel().toStateEmpty()){
@@ -843,6 +922,14 @@ public class AFNDController implements Initializable
             }
                 
         }*/
+        
+        /*if(automaton.getFinalStates().isEmpty()){
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Final state error");
+            result.setHeaderText("There are no final states");
+            result.showAndWait();
+            return false;
+        }
         
         if(!transitionsRedList.isEmpty()){
             Alert result = new Alert(Alert.AlertType.ERROR);
@@ -883,9 +970,9 @@ public class AFNDController implements Initializable
             shortest.setHeaderText("There is no viable path");
             shortest.showAndWait();
             return false;
-        }   
+        }*/   
         
-        else if(sp.isEmpty() && wordField.getText().isEmpty())
+        /*else if(sp.isEmpty() && wordField.getText().isEmpty())
         {
             Alert shortest = new Alert(Alert.AlertType.INFORMATION);
             shortest.setTitle("Word accepted");
@@ -893,7 +980,11 @@ public class AFNDController implements Initializable
             shortest.showAndWait();
             return true;
         
+        }*/
+        if(this.automaton instanceof NFA && !isValidNFA()){
+            return false;
         }
+        
         else
         {
             return this.automaton.readWord(wordField.getText());
@@ -912,14 +1003,7 @@ public class AFNDController implements Initializable
 
     @FXML
     private void shortestWord(ActionEvent event) {
-        if(automaton.getFinalStates().isEmpty()){
-            Alert result = new Alert(Alert.AlertType.ERROR);
-            result.setTitle("Final state error");
-            result.setHeaderText("There are no final states");
-            result.showAndWait();
-            return;
-        }
-        
+               
         
         /*for(StateController s : statesList){            
             if(s.compareTo(automaton.getInitialState())!=0 && s.getStateModel().toStateEmpty()){
@@ -932,6 +1016,14 @@ public class AFNDController implements Initializable
             }
                 
         }*/
+        /*
+        if(automaton.getFinalStates().isEmpty()){
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Final state error");
+            result.setHeaderText("There are no final states");
+            result.showAndWait();
+            return;
+        }
         
         if(!transitionsRedList.isEmpty()){
             Alert result = new Alert(Alert.AlertType.ERROR);
@@ -949,14 +1041,17 @@ public class AFNDController implements Initializable
             result.setContentText("Please, move or delete the states showed in red");
             result.showAndWait();
             return;
+        }*/
+        if(this.automaton instanceof NFA && !isValidNFA()){
+            return;
         }
         
-        String sp = null;
+        String sp;
         Dijkstra d = new Dijkstra(automaton);
 
         d.sp();
         sp = d.getShortestWord();
-
+        /*
         if(automaton.getInitialState()==null){
             Alert shortest = new Alert(Alert.AlertType.ERROR);
             shortest.setTitle("Initial state error");
@@ -970,8 +1065,8 @@ public class AFNDController implements Initializable
             shortest.setTitle("Viable path error");
             shortest.setHeaderText("There is no viable path");
             shortest.showAndWait();
-        }   
-        else if (sp.length() == 0)
+        }   */
+        if (sp.length() == 0)
         {
             Alert shortest = new Alert(Alert.AlertType.INFORMATION);
             shortest.setTitle("Shotest path");
@@ -1552,7 +1647,21 @@ public class AFNDController implements Initializable
 
     @FXML
     private void readWordStep(ActionEvent event) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if(stepCounter==0){
+            stepWord = wordField.getText();
+            
+            if (isValidNFA()){
+                if (!isEmptyAccepted()){                    
+                    stepDisableButtons();
+                    if(stepWord.length()>0){
+                        this.automaton.readChar(stepWord.substring(0, 1));
+                        stepWord = stepWord.substring(1);
+                    }
+                    stepCounter++;
+                }                
+            }           
+            
+        }
     }
 
     @FXML
@@ -1570,6 +1679,129 @@ public class AFNDController implements Initializable
             ImageIO.write(SwingFXUtils.fromFXImage(image2, null), "png", file2);
         } catch (IOException e) {
         } 
+    }
+    
+    private void stepDisableButtons(){
+        menuFile.setDisable(true);
+        menuEdit.setDisable(true);
+        menuHelp.setDisable(true);
+        menuOptions.setDisable(true);
+        buttonRead.setDisable(true);
+        buttonRedo.setDisable(true);
+        buttonState.setDisable(true);
+        buttonState.setSelected(false);
+        buttonPressed = "";
+        buttonUndo.setDisable(true);
+        buttonTransition.setSelected(false);
+        buttonTransition.setDisable(true);
+        wordField.setDisable(true);
+    }
+    
+    private void stepEnableButtons(){
+        menuFile.setDisable(false);
+        menuEdit.setDisable(false);
+        menuHelp.setDisable(false);
+        menuOptions.setDisable(false);
+        buttonRead.setDisable(false);
+        buttonRedo.setDisable(false);
+        buttonState.setDisable(false);
+        buttonUndo.setDisable(false);
+        buttonTransition.setDisable(false);
+        wordField.setDisable(false);
+    }
+    
+    public void acceptAutomaton(){
+        for(StateController s : statesList){
+            s.getStateView().playAcceptAnimation();
+        }
+    }
+    
+    public void rejectAutomaton(){
+        for(StateController s : statesList){
+            s.getStateView().playRejectAnimation();
+        }
+    }
+    
+    private boolean isValidNFA(){
+        if(automaton.getFinalStates().isEmpty()){
+            rejectAutomaton();
+            
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Final state error");
+            result.setHeaderText("There are no final states");
+            result.showAndWait();
+            return false;
+        }
+        
+        if(!transitionsRedList.isEmpty()){
+            rejectAutomaton();
+            
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Invalid transition error");
+            result.setHeaderText("Invalid transition detected");
+            result.setContentText("Please, move or delete the transitions showed in red");
+            result.showAndWait();
+            return false;
+        }
+        
+        if(!statesRedList.isEmpty()){
+            rejectAutomaton();
+            
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Invalid state error");
+            result.setHeaderText("Invalid state detected");
+            result.setContentText("Please, move or delete the states showed in red");
+            result.showAndWait();
+            return false;
+        }
+        
+        if(automaton.getInitialState()==null){
+            rejectAutomaton();
+            
+            Alert result = new Alert(Alert.AlertType.ERROR);
+            result.setTitle("Initial state error");
+            result.setHeaderText("There is no initial state");
+            result.showAndWait();
+            return false;
+        }
+        
+        String sp = null;
+        Dijkstra d = new Dijkstra(automaton);
+               
+        d.sp();
+        sp = d.getShortestWord();
+        
+        if(!d.isExistPath()){
+            rejectAutomaton();
+            
+            Alert shortest = new Alert(Alert.AlertType.ERROR);
+            shortest.setTitle("Viable path error");
+            shortest.setHeaderText("There is no viable path");
+            shortest.showAndWait();
+            return false;
+        } 
+        
+        return true;
+    }
+    
+    private boolean isEmptyAccepted(){
+        String sp;
+        Dijkstra d = new Dijkstra(automaton);
+               
+        d.sp();
+        sp = d.getShortestWord();
+        
+        if(sp.isEmpty() && wordField.getText().isEmpty())
+        {
+            acceptAutomaton();
+            
+            Alert shortest = new Alert(Alert.AlertType.INFORMATION);
+            shortest.setTitle("Word accepted");
+            shortest.setHeaderText("The word was accepted!");
+            shortest.showAndWait();
+            return true;
+        }
+        return false;
     }
     
 }
