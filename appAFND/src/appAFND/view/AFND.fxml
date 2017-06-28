@@ -19,7 +19,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 
-<VBox prefHeight="415.0" prefWidth="837.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="appAFND.view.AFNDController">
+<VBox fx:id="vBox" prefHeight="415.0" prefWidth="837.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="appAFND.view.AFNDController">
    <children>
       <MenuBar fx:id="menuBar">
          <menus>
@@ -36,6 +36,7 @@
                         <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator>
                   </MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#print" text="Print" />
                   <MenuItem mnemonicParsing="false" text="Quit" />
                </items>
             </Menu>
@@ -74,11 +75,12 @@
             <Slider fx:id="sliderZoom" blockIncrement="25.0" max="250.0" min="25.0" minorTickCount="5" prefHeight="38.0" prefWidth="203.0" showTickLabels="true" showTickMarks="true" value="100.0" />
             <Separator orientation="VERTICAL" />
             <TextField fx:id="wordField" promptText="Word" />
-            <Button fx:id="buttonExecute" alignment="CENTER_RIGHT" mnemonicParsing="false" onAction="#readWord" text="Read">
+            <Button fx:id="buttonRead" alignment="CENTER_RIGHT" mnemonicParsing="false" onAction="#readWord" text="Read">
                <opaqueInsets>
                   <Insets right="10.0" />
                </opaqueInsets>
             </Button>
+            <Button fx:id="buttonStep" mnemonicParsing="false" onAction="#readWordStep" text="Step" />
          </items>
       </ToolBar>
       <TabPane fx:id="tabPane" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">

@@ -7,6 +7,7 @@ package appAFND.model;
 
 import appAFND.controller.AlphabetController;
 import appAFND.controller.StateController;
+import appAFND.view.AFNDController;
 import java.util.ArrayList;
 import java.util.HashMap;
 import javafx.scene.control.Alert;
@@ -22,13 +23,15 @@ public abstract class Automaton {
     protected HashMap<StateController, HashMap<String, ArrayList<StateController>>> f;
     protected StateController initialState;
     protected ArrayList<StateController> finalStates;
+    protected AFNDController afndController;
     
     
-    public Automaton(ArrayList<StateController> states, AlphabetController alphabet, ArrayList<StateController> finalStates, StateController initialState) {
+    public Automaton(ArrayList<StateController> states, AlphabetController alphabet, ArrayList<StateController> finalStates, StateController initialState, AFNDController afndController) {
         this.states = states;
         this.alphabet = alphabet;
         this.finalStates = finalStates;
         this.initialState = initialState;
+        this.afndController = afndController;
     }
     
     
@@ -114,6 +117,8 @@ public abstract class Automaton {
             if (!alphabet.alphabetContains(c)){
                 // Alerta por si la letra no esta contenida en el alfabeto.
                 // Rellenar la alerta.
+                afndController.rejectAutomaton();
+                
                 Alert emptyAlert = new Alert(Alert.AlertType.ERROR);
                 emptyAlert.setTitle("Word error");
                 emptyAlert.setHeaderText("Some of the characters are not contained in the alphabet");
@@ -181,6 +186,8 @@ public abstract class Automaton {
             nuevos.addAll(activos);
 
             if(activos.isEmpty()){
+               afndController.rejectAutomaton();
+                
                refuse.showAndWait();
                return false;
             }
@@ -210,6 +217,7 @@ public abstract class Automaton {
         for(StateController activo : activos){
             //System.out.println("activo:"+activo.getStateLabel());
             if (finalStates.contains(activo)){
+                afndController.acceptAutomaton();
                 accepted.showAndWait();
                 return true;
             }
@@ -217,10 +225,14 @@ public abstract class Automaton {
 
             
               
-        
+        afndController.rejectAutomaton();
         refuse.showAndWait();
         return false;
 
+    }
+
+    public void readChar(String character) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

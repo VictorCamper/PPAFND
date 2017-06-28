@@ -2,6 +2,7 @@ package appAFND.model;
 
 import appAFND.controller.AlphabetController;
 import appAFND.controller.StateController;
+import appAFND.view.AFNDController;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,8 +14,8 @@ import java.util.HashMap;
 public class NFA extends Automaton {
     
   
-    public NFA(ArrayList<StateController> states, AlphabetController alphabet, ArrayList<StateController> finalStates, StateController initialState) {
-        super(states, alphabet, finalStates, initialState);
+    public NFA(ArrayList<StateController> states, AlphabetController alphabet, ArrayList<StateController> finalStates, StateController initialState, AFNDController afndController) {
+        super(states, alphabet, finalStates, initialState, afndController);
         //Caracter vacío esta en todos los alphabet
         alphabet.addCharacter('\u03BB');
         

@@ -6,6 +6,12 @@ import com.sun.javafx.tk.FontLoader;
 import com.sun.javafx.tk.Toolkit;
 import java.util.ArrayList;
 import java.util.HashMap;
+import javafx.animation.Animation;
+import javafx.animation.FadeTransition;
+import javafx.animation.FillTransition;
+import javafx.animation.ScaleTransition;
+import javafx.animation.StrokeTransition;
+import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Group;
@@ -19,6 +25,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
 
 /**
  *
@@ -33,6 +40,8 @@ public class StateView implements Comparable<StateView>
     private StateController controller;
     private AFNDController afndcontroller;
     private Polygon arrow;
+    private StrokeTransition st;
+    private FillTransition ft;
 
     public StateView(AFNDController afndcontroller, double x, double y, double radius, String name)
     {        
@@ -50,6 +59,20 @@ public class StateView implements Comparable<StateView>
         this.circle = new Circle(x, y, radius, Color.DEEPSKYBLUE);
         this.circle.setStroke(Color.DEEPSKYBLUE);
         this.circle.setStrokeWidth(3);
+        
+        st = new StrokeTransition();
+        st.setShape(circle);
+        st.setDuration(new Duration(500));
+        st.setToValue(Color.GOLD);
+        st.setCycleCount(Timeline.INDEFINITE);
+        st.setAutoReverse(true);
+        
+        ft = new FillTransition();
+        ft.setShape(circle);
+        ft.setDuration(new Duration(500));
+        ft.setToValue(Color.GOLD);
+        ft.setCycleCount(Timeline.INDEFINITE);
+        ft.setAutoReverse(true);        
         
         String label = name;
         this.text = new Text(label);
@@ -78,7 +101,8 @@ public class StateView implements Comparable<StateView>
             @Override
             public void handle(MouseEvent event)
             {
-                if (event.getButton() == MouseButton.PRIMARY){
+                if (event.getButton() == MouseButton.PRIMARY){                                  
+                    
                     afndcontroller.stateClicked(controller);
                 }
                 contextMenu(event);
@@ -199,19 +223,87 @@ public class StateView implements Comparable<StateView>
         });
         
     }
+    
+    public void playStepAnimation(){
+        ft.play();
+        st.play();
+    }
+    
+    public void playAcceptAnimation(){
+        ft.setCycleCount(4);
+        st.setCycleCount(4);
+        
+        ft.setToValue(Color.LIMEGREEN);
+        if(afndcontroller.getAutomaton().getFinalStates().contains(controller))          
+            st.setToValue(Color.GREEN);
+        
+        else
+            st.setToValue(Color.LIMEGREEN);
+        
+        ft.play();
+        st.play();
+        
+        ft.setCycleCount(Timeline.INDEFINITE);
+        st.setCycleCount(Timeline.INDEFINITE);
+        
+        ft.setToValue(Color.GOLD);
+        if(afndcontroller.getAutomaton().getFinalStates().contains(controller)){
+            st.setToValue(Color.ORANGE);
+        }
+        else{
+            st.setToValue(Color.GOLD);
+        }
+        
+    }
+    
+    public void playRejectAnimation(){
+        ft.setCycleCount(4);
+        st.setCycleCount(4);
+        
+        ft.setToValue(Color.TOMATO);
+        if(afndcontroller.getAutomaton().getFinalStates().contains(controller))          
+            st.setToValue(Color.CRIMSON);
+        
+        else
+            st.setToValue(Color.TOMATO);
+        
+        ft.play();
+        st.play();
+        
+        ft.setCycleCount(Timeline.INDEFINITE);
+        st.setCycleCount(Timeline.INDEFINITE);
+        
+        ft.setToValue(Color.GOLD);
+        if(afndcontroller.getAutomaton().getFinalStates().contains(controller)){
+            st.setToValue(Color.ORANGE);
+        }
+        else{
+            st.setToValue(Color.GOLD);
+        }
+        
+    }
+    
+    public void pauseStepAnimation(){
+        ft.jumpTo(Duration.ZERO);
+        ft.pause();
+        st.jumpTo(Duration.ZERO);
+        st.pause(); 
+    }
 
     public void setController(StateController controller) {
         this.controller = controller;
     }
-    private void isNotFinalNodo()
-    {
+    
+    private void isNotFinalNodo() {
+        st.setToValue(Color.GOLD);
         if(!afndcontroller.statesRedList.contains(controller))  
             circle.setStroke(Color.DEEPSKYBLUE);
         afndcontroller.getAutomaton().getFinalStates().remove(controller);
         afndcontroller.updateTable();
     }
-    private void isFinalNodo()
-    {
+    
+    private void isFinalNodo() {
+        st.setToValue(Color.ORANGE);
         if(!afndcontroller.statesRedList.contains(controller))            
             circle.setStroke(Color.web("#006485"));  
         afndcontroller.getAutomaton().getFinalStates().add(controller);
