@@ -23,7 +23,8 @@ import appAFND.model.Dijkstra;
 import appAFND.model.NFA;
 import appAFND.model.State;
 import appAFND.model.Transition;
-import java.io.File;
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -35,18 +36,12 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.function.UnaryOperator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -56,12 +51,8 @@ import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
-import javafx.print.PageLayout;
-import javafx.print.PageOrientation;
-import javafx.print.Paper;
-import javafx.print.Printer;
-import javafx.print.PrinterJob;
 import javafx.scene.Group;
+import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar.ButtonData;
@@ -84,13 +75,15 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.QuadCurve;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.transform.Rotate;
-import javafx.scene.transform.Scale;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import javafx.util.Pair;
 import javax.imageio.ImageIO;
 import org.controlsfx.control.spreadsheet.GridBase;
@@ -176,6 +169,8 @@ public class AFNDController implements Initializable
     private Button buttonStep;
     private int stepCounter=0;
     private String stepWord = new String();
+    @FXML
+    private VBox vBox;
     
     /**
      * Initializes the controller class.
@@ -517,6 +512,28 @@ public class AFNDController implements Initializable
         //this.splitPane.setDividerPositions(0.95);    
     }
     
+    private SpreadsheetView copyTable(){
+        SpreadsheetView sv = new SpreadsheetView(this.spreadSheet.getGrid());
+        sv.setShowColumnHeader(false);
+        sv.setShowRowHeader(false);
+        return sv;
+    }
+    
+    private double getWidthTable(){
+        double width = 0;
+        for (int i = 0; i < this.spreadSheet.getColumns().size(); i++) {
+            width += this.spreadSheet.getColumns().get(i).getWidth();
+        }
+        return width;
+    }
+    
+    private double getHeightTable(){
+        double height = 0;
+        for(int i=0;i<this.spreadSheet.getGrid().getRowCount(); i++){
+            height += this.spreadSheet.getRowHeight(i);
+        }
+        return height;
+    }
     
     private SpreadsheetView getTableCopy()
     {
@@ -1721,22 +1738,70 @@ public class AFNDController implements Initializable
             
         }
     }
+    
+    private BufferedImage screenshotCanvas(){
+        double scaleX = automatonPane.getScaleX();
+        double scaleY = automatonPane.getScaleY();
+        
+        automatonPane.setScaleX(1);
+        automatonPane.setScaleY(1);
+        
+        WritableImage image = automatonPane.snapshot(new SnapshotParameters(), null);
+        
+        automatonPane.setScaleX(scaleX);
+        automatonPane.setScaleY(scaleY);
+        return SwingFXUtils.fromFXImage(image,null);
+    }
+    
+    private BufferedImage screenshotTable(){
+        SpreadsheetView sv = copyTable();
+        Scene s = new Scene(sv, getWidthTable()+2, getHeightTable()+2);
+        
+        return SwingFXUtils.fromFXImage(sv.snapshot(new SnapshotParameters(), null),null);
+    }
+    
+    private BufferedImage combineImages(BufferedImage i1, BufferedImage i2){               
+        int w = i1.getWidth()+ i2.getWidth();
+        int h = Math.max(i1.getHeight(), i2.getHeight());
+        
+        BufferedImage combined = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        
+        Graphics g = combined.getGraphics();
+        g.drawImage(i1, 0, 0, null);
+        g.drawImage(i2, i1.getWidth(), 0, null);
+        
+        return combined;
+    }
+    
+    private void writeImage(BufferedImage image){
+        Stage secondStage = new Stage();
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG", "*.png"));
+        fileChooser.setTitle("Save Image");
+
+        File file = fileChooser.showSaveDialog(secondStage);
+        if (file != null) {
+            try {
+                ImageIO.write(image, "png", file);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+    }
 
     @FXML
-    private void print(ActionEvent event) {
-        WritableImage image1 = automatonPane.snapshot(new SnapshotParameters(), null);
-        File file = new File("canvas.png");
-        try {
-            ImageIO.write(SwingFXUtils.fromFXImage(image1, null), "png", file);
-        } catch (IOException e) {
-        } 
-        
-        WritableImage image2 = spreadSheet.snapshot(new SnapshotParameters(), null);
-        File file2 = new File("table.png");
-        try {
-            ImageIO.write(SwingFXUtils.fromFXImage(image2, null), "png", file2);
-        } catch (IOException e) {
-        } 
+    private void exportBoth(ActionEvent event) {       
+        writeImage(combineImages(screenshotCanvas(), screenshotTable())); 
+    }
+    
+    @FXML
+    private void exportCanvas(){     
+        writeImage(screenshotCanvas());
+    }
+    
+    @FXML
+    private void exportTable(){
+        writeImage(screenshotTable());
     }
     
     private void stepDisableButtons(){

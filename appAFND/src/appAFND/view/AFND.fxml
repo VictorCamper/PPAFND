@@ -36,7 +36,9 @@
                         <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator>
                   </MenuItem>
-                  <MenuItem mnemonicParsing="false" onAction="#print" text="Print" />
+                  <MenuItem mnemonicParsing="false" onAction="#exportCanvas" text="Export canvas to PNG" />
+                  <MenuItem mnemonicParsing="false" onAction="#exportTable" text="Export table to PNG" />
+                  <MenuItem mnemonicParsing="false" onAction="#exportBoth" text="Export both to PNG" />
                   <MenuItem mnemonicParsing="false" text="Quit" />
                </items>
             </Menu>

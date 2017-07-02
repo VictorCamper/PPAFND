@@ -2,6 +2,7 @@ package appAFND.model;
 
 import appAFND.controller.AlphabetController;
 import appAFND.controller.StateController;
+import appAFND.view.AFNDController;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -12,9 +13,9 @@ import java.util.HashMap;
 public class DFA extends Automaton
 {
 
-    public DFA(ArrayList<StateController> states, AlphabetController alphabet, ArrayList<StateController> finalStates, StateController initialState)
+    public DFA(ArrayList<StateController> states, AlphabetController alphabet, ArrayList<StateController> finalStates, StateController initialState, AFNDController afndcontroller)
     {
-        super(states, alphabet, finalStates, initialState);
+        super(states, alphabet, finalStates, initialState, afndcontroller);
         
         f = new HashMap<>();
         for(StateController s : this.states){
