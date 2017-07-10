@@ -38,6 +38,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
+import javafx.animation.FillTransition;
+import javafx.animation.StrokeTransition;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -86,6 +88,7 @@ import javafx.scene.shape.Shape;
 import javafx.scene.transform.Rotate;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import javafx.util.Pair;
 import javax.imageio.ImageIO;
 import org.controlsfx.control.PropertySheet;
@@ -178,6 +181,10 @@ public class AFNDController implements Initializable
     private boolean isNewAlphaEmpty = true;
     private boolean isNewWidthEmpty = true;
     private boolean isNewHeightEmpty = true;
+    private ArrayList<TransitionController> transitionsStep = new ArrayList<>();
+    private ArrayList<StateController> statesStep = new ArrayList<>();
+    
+    private TransitionController activeTransition;
     /**
      * Initializes the controller class.
      */
@@ -208,7 +215,7 @@ public class AFNDController implements Initializable
         
         this.stateCounter = 0;        
         this.transitionClickCounter = 0;
-        
+               
         //this.ffd = FastFeatureDetector.create(10/* threshold for detection */, true /* non-max suppression */, FastFeatureDetector.TYPE_9_16); 
         //this.keyPoints = new KeyPointVector(); 
                 
@@ -2136,21 +2143,158 @@ public class AFNDController implements Initializable
 
     @FXML
     private void readWordStep(ActionEvent event) {
-        if(stepCounter==0){
-            stepWord = wordField.getText();
+        
+        
+        if(this.automaton instanceof NFA && !isValidNFA()){
+            return;
+        }
+        
+        else if(this.automaton instanceof DFA && !isValidDFA()){
+            return;
+        }
+        
+        if(isEmptyAccepted())
+            return;
+        
+        
+        
+        Alert accepted = new Alert(Alert.AlertType.INFORMATION);
+        accepted.setTitle("Word accepted");
+        accepted.setHeaderText("The word was accepted!");
+        
+        Alert refuse = new Alert(Alert.AlertType.ERROR);
+        refuse.setTitle("Word not accepted");
+        refuse.setHeaderText("The word was not accepted!");   
+        
+        if(stepCounter>=wordField.getText().length()){
             
-            if (isValidNFA()){
+            stepCounter = 0;
+            statesStep = new ArrayList<>();
+            stepEnableButtons();  
+            boolean accept = false;
+            for(TransitionController tran : transitionsStep){
+                tran.getTransitionView().pauseStepAnimation();
+                if(automaton.getFinalStates().contains(tran.getTransitionTo())){
+                    accept = true;
+                }
+            }
+            
+            if (accept){
+                acceptAutomaton();
+                accepted.showAndWait();
+            }
+            else{
+                rejectAutomaton();   
+                refuse.showAndWait();
+            }
+            return;
+        }
+        
+        stepWord = wordField.getText().substring(stepCounter, stepCounter+1);
+        if(stepCounter == 0){      
+            statesStep.add(automaton.getInitialState());
+            
+            for(Character c : wordField.getText().toCharArray()){
+                if (!automaton.getAlphabet().alphabetContains(c)){
+                    rejectAutomaton();
+
+                    Alert emptyAlert = new Alert(Alert.AlertType.ERROR);
+                    emptyAlert.setTitle("Word error");
+                    emptyAlert.setHeaderText("Some of the characters are not contained in the alphabet");
+                    emptyAlert.showAndWait();
+                    return;
+                }      
+            }
+                    
+        } 
+        
+        for(TransitionController tran : transitionsList){
+            tran.getTransitionView().pauseStepAnimation();
+        }
+        
+        stepDisableButtons();
+        
+        if(this.automaton instanceof NFA){
+            transitionsStep = ((NFA)this.automaton).readChar(stepWord, statesStep);
+        }
+        
+        if(this.automaton instanceof DFA){
+            transitionsStep = ((DFA)this.automaton).readChar(stepWord, statesStep);
+        }
+        
+        statesStep.clear();
+        
+        for(TransitionController tran : transitionsStep){
+            tran.getTransitionView().playStepAnimation();
+            //System.out.println(tran.getTransitionTo().getStateView().getText().getText());
+            statesStep.add(tran.getTransitionTo());
+        }
+        
+        stepCounter++;        
+        
+        
+        
+        /*activeState.getStateView().previousStepAnimation();
+        
+                
+        stepWord = wordField.getText().substring(stepCounter, stepCounter+1);
+        stepDisableButtons();        
+        
+
+        if(this.automaton instanceof NFA && isValidNFA()){
+            activeState = ((NFA)this.automaton).readChar(stepWord, activeState);
+            activeState.getStateView().playStepAnimation();
+        }
+
+        else if(this.automaton instanceof DFA && isValidDFA()){
+            activeState = ((DFA)this.automaton).readChar(stepWord, activeState);
+            activeState.getStateView().playStepAnimation();
+        }
+
+        stepCounter++;        
+        
+        if(stepCounter>=wordField.getText().length()){
+            activeState.getStateView().pauseStepAnimation();
+            stepCounter = 0;
+            stepEnableButtons();      
+            
+            if (automaton.getFinalStates().contains(activeState)){
+                acceptAutomaton();
+                accepted.showAndWait();
+            }
+            else{
+                rejectAutomaton();   
+                refuse.showAndWait();
+            }
+        }/*
+        
+        //if(stepCounter==0){
+        
+            /*stepWord = wordField.getText();
+            
+            if (this.automaton instanceof NFA && isValidNFA()){
                 if (!isEmptyAccepted()){                    
                     stepDisableButtons();
                     if(stepWord.length()>0){
-                        this.automaton.readChar(stepWord.substring(0, 1));
-                        stepWord = stepWord.substring(1);
+                        wordField.setText(stepWord.substring(1));
+                        ((NFA)this.automaton).readChar(stepWord.substring(0, 1));                        
                     }
                     stepCounter++;
                 }                
-            }           
+            }
             
-        }
+            else if(this.automaton instanceof DFA && isValidDFA()){
+                if (!isEmptyAccepted()){                    
+                    stepDisableButtons();
+                    if(stepWord.length()>0){
+                        ((DFA)this.automaton).readChar(stepWord.substring(0, 1));   
+                        wordField.setText(stepWord.substring(1));
+                    }
+                    stepCounter++;
+                }
+            }*/
+            
+        //}
     }
     
     private BufferedImage screenshotCanvas(){
@@ -2354,6 +2498,10 @@ public class AFNDController implements Initializable
                         //System.out.println(t);
                         if (!transitionText.contains(c.toString())){
                             rejectAutomaton();
+                            Alert result = new Alert(Alert.AlertType.ERROR);
+                            result.setTitle("DFA incomplete");
+                            result.setHeaderText("Some state isn't using all the characters of the alphabet");
+                            result.showAndWait();
                             return false;
                         }
                     }

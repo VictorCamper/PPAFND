@@ -40,8 +40,8 @@ public class StateView implements Comparable<StateView>
     private StateController controller;
     private AFNDController afndcontroller;
     private Polygon arrow;
-    private StrokeTransition st;
-    private FillTransition ft;
+    private StrokeTransition st = new StrokeTransition();
+    private FillTransition ft = new FillTransition();
 
     public StateView(AFNDController afndcontroller, double x, double y, double radius, String name)
     {        
@@ -225,61 +225,104 @@ public class StateView implements Comparable<StateView>
     }
     
     public void playStepAnimation(){
+        pauseStepAnimation();
+        st = new StrokeTransition();
+        st.setShape(circle);
+        st.setDuration(new Duration(500));
+        if(afndcontroller.getAutomaton().getFinalStates().contains(controller)){
+            st.setToValue(Color.ORANGE);
+        }
+        else{
+            st.setToValue(Color.GOLD);
+        }
+        st.setCycleCount(Timeline.INDEFINITE);
+        st.setAutoReverse(true);
+        
+        ft = new FillTransition();
+        ft.setShape(circle);
+        ft.setDuration(new Duration(500));
+        ft.setToValue(Color.GOLD);
+        ft.setCycleCount(Timeline.INDEFINITE);
+        ft.setAutoReverse(true);  
+        
+        ft.play();
+        st.play();
+    }
+    
+    public void previousStepAnimation(){
+        pauseStepAnimation();
+        st = new StrokeTransition();
+        st.setShape(circle);
+        st.setDuration(new Duration(500));
+        if(afndcontroller.getAutomaton().getFinalStates().contains(controller)){
+            st.setToValue(Color.DARKSLATEBLUE);
+        }
+        else{
+            st.setToValue(Color.DARKORCHID);
+        }
+        st.setCycleCount(Timeline.INDEFINITE);
+        st.setAutoReverse(true);
+        
+        ft = new FillTransition();
+        ft.setShape(circle);
+        ft.setDuration(new Duration(500));
+        ft.setToValue(Color.DARKORCHID);
+        ft.setCycleCount(Timeline.INDEFINITE);
+        ft.setAutoReverse(true);     
+        
         ft.play();
         st.play();
     }
     
     public void playAcceptAnimation(){
-        ft.setCycleCount(4);
-        st.setCycleCount(4);
-        
-        ft.setToValue(Color.LIMEGREEN);
+        pauseStepAnimation();
+        st = new StrokeTransition();
+        st.setShape(circle);
+        st.setDuration(new Duration(500));
         if(afndcontroller.getAutomaton().getFinalStates().contains(controller))          
             st.setToValue(Color.GREEN);
         
         else
             st.setToValue(Color.LIMEGREEN);
+        st.setCycleCount(4);
+        st.setAutoReverse(true);
+        
+        ft = new FillTransition();
+        ft.setShape(circle);
+        ft.setDuration(new Duration(500));
+        ft.setToValue(Color.LIMEGREEN);
+        ft.setCycleCount(4);
+        ft.setAutoReverse(true); 
+        
         
         ft.play();
         st.play();
-        
-        ft.setCycleCount(Timeline.INDEFINITE);
-        st.setCycleCount(Timeline.INDEFINITE);
-        
-        ft.setToValue(Color.GOLD);
-        if(afndcontroller.getAutomaton().getFinalStates().contains(controller)){
-            st.setToValue(Color.ORANGE);
-        }
-        else{
-            st.setToValue(Color.GOLD);
-        }
         
     }
     
     public void playRejectAnimation(){
-        ft.setCycleCount(4);
-        st.setCycleCount(4);
+        pauseStepAnimation();
         
-        ft.setToValue(Color.TOMATO);
+        st = new StrokeTransition();
+        st.setShape(circle);
+        st.setDuration(new Duration(500));
         if(afndcontroller.getAutomaton().getFinalStates().contains(controller))          
-            st.setToValue(Color.CRIMSON);
-        
+            st.setToValue(Color.CRIMSON);        
         else
             st.setToValue(Color.TOMATO);
+        st.setCycleCount(4);
+        st.setAutoReverse(true);
+        
+        ft = new FillTransition();
+        ft.setShape(circle);
+        ft.setDuration(new Duration(500));
+        ft.setToValue(Color.TOMATO);
+        ft.setCycleCount(4);
+        ft.setAutoReverse(true); 
+        
         
         ft.play();
         st.play();
-        
-        ft.setCycleCount(Timeline.INDEFINITE);
-        st.setCycleCount(Timeline.INDEFINITE);
-        
-        ft.setToValue(Color.GOLD);
-        if(afndcontroller.getAutomaton().getFinalStates().contains(controller)){
-            st.setToValue(Color.ORANGE);
-        }
-        else{
-            st.setToValue(Color.GOLD);
-        }
         
     }
     
@@ -288,6 +331,14 @@ public class StateView implements Comparable<StateView>
         ft.pause();
         st.jumpTo(Duration.ZERO);
         st.pause(); 
+    }
+    
+    public FillTransition getFT(){
+        return this.ft;
+    }
+    
+    public StrokeTransition getST(){
+        return this.st;
     }
 
     public void setController(StateController controller) {

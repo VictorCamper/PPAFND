@@ -48,6 +48,7 @@ public class DFA extends Automaton
                 if(transitionText.contains(transition)){                                    
                     transitionText = transitionText.replace(transition.concat(", "), "");
                     transitionText = transitionText.replace(", ".concat(transition), "");
+                    transitionText = transitionText.replace(transition, "");
                     tran.getTransitionView().getText().setText(transitionText);
                     //Delete a transition if it's empty
                     if(transitionText.isEmpty()){
@@ -92,7 +93,7 @@ public class DFA extends Automaton
         accepted.setHeaderText("The word was accepted!");
         
         Alert refuse = new Alert(Alert.AlertType.ERROR);
-        refuse.setTitle("Not accepted");
+        refuse.setTitle("Word not accepted");
         refuse.setHeaderText("The word was not accepted!");
         
         for (char c : characters){
@@ -123,11 +124,11 @@ public class DFA extends Automaton
         for(int i = 0; i < characters.length ; i++){
             //Revisar si los nuevos tienen transiciones vacias
             //Se agregan las transiciones vacias a nuevoaux
-            while(!(nuevos.isEmpty()))
+            /*while(!(nuevos.isEmpty()))
             {
                 //System.out.println("hola");
                 ArrayList<StateController> nuevosaux = new ArrayList();
-                /*for(StateController nuevo : nuevos){                    
+                for(StateController nuevo : nuevos){                    
                     if(!(f.get(nuevo).get("\u03BB").isEmpty())){
                         if(f.get(nuevo).get("\u03BB").contains(nuevo)){
                             for(StateController s :f.get(nuevo).get("\u03BB")){
@@ -138,7 +139,7 @@ public class DFA extends Automaton
                         else
                             nuevosaux.addAll(f.get(nuevo).get("\u03BB"));
                     }
-                }*/
+                }
                 //La lista de nuevos = nuevosaux
                 nuevos.clear();
                 nuevos.addAll(nuevosaux);
@@ -146,7 +147,7 @@ public class DFA extends Automaton
                 //Agregar a los activos los nuevos
                 activos.addAll(nuevos);
 
-            }
+            }*/
             //System.out.println(activos);
 
             //Leer caracter
@@ -180,23 +181,23 @@ public class DFA extends Automaton
 
         }
         
-        while(!(nuevos.isEmpty()))
-            {
-                //System.out.println("hola");
-                ArrayList<StateController> nuevosaux = new ArrayList();
-                /*for(StateController nuevo : nuevos){
-                    if(!(f.get(nuevo).get("\u03BB").isEmpty())){
-                        nuevosaux.addAll(f.get(nuevo).get("\u03BB"));
-                    }
-                }*/
-                //La lista de nuevos = nuevosaux
-                nuevos.clear();
-                nuevos.addAll(nuevosaux);
-
-                //Agregar a los activos los nuevos
-                activos.addAll(nuevos);
-
+        /*while(!(nuevos.isEmpty()))
+        {
+            //System.out.println("hola");
+            ArrayList<StateController> nuevosaux = new ArrayList();
+            for(StateController nuevo : nuevos){
+                if(!(f.get(nuevo).get("\u03BB").isEmpty())){
+                    nuevosaux.addAll(f.get(nuevo).get("\u03BB"));
+                }
             }
+            //La lista de nuevos = nuevosaux
+            nuevos.clear();
+            nuevos.addAll(nuevosaux);
+
+            //Agregar a los activos los nuevos
+            activos.addAll(nuevos);
+
+        }*/
         
         for(StateController activo : activos){
             //System.out.println("activo:"+activo.getStateLabel());
@@ -212,5 +213,27 @@ public class DFA extends Automaton
         afndController.rejectAutomaton();
         refuse.showAndWait();
         return false;
+    }
+
+    @Override
+    public ArrayList<TransitionController> readChar(String word, ArrayList<StateController> states) {
+        ArrayList<TransitionController> transitions = new ArrayList<>();
+        ArrayList<TransitionController> t = new ArrayList<>();
+        if(!states.isEmpty()){
+            t = states.get(0).getStateModel().getFromState();
+           
+        }
+        if(!t.isEmpty()){
+            for(TransitionController tran : t){
+                if(tran.getTransitionView().getText().getText().contains(word)){
+                    //System.out.println(tran.getTransitionView().getText().getText());
+                    transitions.add(tran);
+                }
+            }
+        }
+        
+        
+        return transitions;
+        
     }
 }

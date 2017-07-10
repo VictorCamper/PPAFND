@@ -14,6 +14,9 @@ import com.sun.javafx.tk.FontLoader;
 import com.sun.javafx.tk.Toolkit;
 import java.util.ArrayList;
 import java.util.HashMap;
+import javafx.animation.FillTransition;
+import javafx.animation.StrokeTransition;
+import javafx.animation.Timeline;
 import javafx.beans.property.DoubleProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -35,6 +38,7 @@ import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
+import javafx.util.Duration;
 
 /**
  *
@@ -55,6 +59,10 @@ public class TransitionView {
     private AFNDController afndController;
     private TransitionController tController;
     private ContextMenu context= new ContextMenu();
+    private StrokeTransition st = new StrokeTransition();
+    private StrokeTransition st2 = new StrokeTransition();         
+    private FillTransition ft = new FillTransition();
+            
     
     public TransitionView(StateController from, StateController to, String label, double canvasHeight, double canvasWidth, AFNDController afndController){
         this.curve = new QuadCurve();
@@ -125,9 +133,7 @@ public class TransitionView {
         this.curve.setStrokeWidth(2);
         this.curve.setStrokeLineCap(StrokeLineCap.BUTT);
         this.curve.setFill(null);
-        
-        
-              
+                     
         
         this.center = new AnchorCenter(Color.GOLD, curve, text, textWidth, this);
         this.start = new Anchor(Color.TRANSPARENT, curve.startXProperty(), curve.startYProperty(), curve, center, text, textWidth, true, from, this);
@@ -345,6 +351,50 @@ public class TransitionView {
 
     public void removeTransition(){
         afndController.getGroupTransitions().getChildren().remove(this.group);
+    }
+    
+    public void playStepAnimation(){
+        pauseStepAnimation();
+        
+        st = new StrokeTransition();
+        st.setShape(curve);
+        st.setDuration(new Duration(500));
+        st.setToValue(Color.GOLD);
+        st.setCycleCount(Timeline.INDEFINITE);
+        st.setAutoReverse(true);
+        
+        st2 = new StrokeTransition();
+        st2.setShape(curve);
+        st2.setDuration(new Duration(500));
+        st2.setToValue(Color.GOLD);
+        st2.setCycleCount(Timeline.INDEFINITE);
+        st2.setAutoReverse(true);
+        
+        ft = new FillTransition();
+        ft.setShape(arrow);
+        ft.setDuration(new Duration(500));
+        ft.setToValue(Color.GOLD);
+        ft.setCycleCount(Timeline.INDEFINITE);
+        ft.setAutoReverse(true);
+        
+        st.play();
+        st2.play();
+        ft.play();
+        
+        from.getStateView().previousStepAnimation();
+        to.getStateView().playStepAnimation();
+    }
+    
+    public void pauseStepAnimation(){
+        ft.jumpTo(Duration.ZERO);
+        ft.pause();
+        st.jumpTo(Duration.ZERO);
+        st.pause(); 
+        st2.jumpTo(Duration.ZERO);
+        st2.pause(); 
+        
+        from.getStateView().pauseStepAnimation();
+        to.getStateView().pauseStepAnimation();
     }
 
 
