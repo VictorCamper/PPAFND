@@ -19,6 +19,7 @@ import appAFND.controller.StateController;
 import appAFND.controller.TransitionController;
 import appAFND.model.Alphabet;
 import appAFND.model.Automaton;
+import appAFND.model.DFA;
 import appAFND.model.Dijkstra;
 import appAFND.model.NFA;
 import appAFND.model.State;
@@ -58,6 +59,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -86,6 +88,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 import javax.imageio.ImageIO;
+import org.controlsfx.control.PropertySheet;
 import org.controlsfx.control.spreadsheet.GridBase;
 import org.controlsfx.control.spreadsheet.SpreadsheetCell;
 import org.controlsfx.control.spreadsheet.SpreadsheetCellType;
@@ -172,21 +175,43 @@ public class AFNDController implements Initializable
     @FXML
     private VBox vBox;
     
+    private boolean isNewAlphaEmpty = true;
+    private boolean isNewWidthEmpty = true;
+    private boolean isNewHeightEmpty = true;
     /**
      * Initializes the controller class.
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        this.dialogInitial();
+        ArrayList<String> start = this.dialogNew();
+        
+        
+        String alpha = start.get(0);
+        
+        Alphabet alph = new Alphabet();
+        AlphabetView alphView = new AlphabetView();
+        AlphabetController alphController = new AlphabetController(alph, alphView);
+        
+        for(String str : alpha.split(", ")){            
+            alphController.addCharacter(str.charAt(0));
+        }
+        
+        String type = start.get(1);
+        if(type.equals("DFA"))
+            this.automaton = new DFA(new ArrayList<>(), alphController, new ArrayList<>(), null, this);
+        else
+            this.automaton = new NFA(new ArrayList<>(), alphController, new ArrayList<>(), null, this);
+        
+        this.canvasWidth = Integer.parseInt(start.get(2));
+        this.canvasHeight = Integer.parseInt(start.get(3));
+        
+        
         this.stateCounter = 0;        
         this.transitionClickCounter = 0;
         
         //this.ffd = FastFeatureDetector.create(10/* threshold for detection */, true /* non-max suppression */, FastFeatureDetector.TYPE_9_16); 
         //this.keyPoints = new KeyPointVector(); 
-        
-        this.canvasWidth = 1200;
-        this.canvasHeight = 800;
-        
+                
         this.canvas.setHeight(this.canvasHeight);
         this.canvas.setWidth(this.canvasWidth);
         this.canvas.setFill(Color.WHITE);
@@ -535,91 +560,93 @@ public class AFNDController implements Initializable
         return height;
     }
     
-    private SpreadsheetView getTableCopy()
-    {
-        try
-        {
-            FileOutputStream file = new FileOutputStream("tableView.dat");
-            BufferedOutputStream buffer = new BufferedOutputStream(file);
-            ObjectOutputStream output = new ObjectOutputStream(buffer);
-            output.writeObject(this.spreadSheet);
-            output.close();
-            buffer.close();
-            file.close();
-        }
-        catch(Exception ex)
-        {
-            System.out.println("A problem was ocurred with the exportation.");
-        }
-        
-        
-        SpreadsheetView table;
-        try
-        {
-            File archivo = new File("tableView.dat");
-            if (archivo.exists()) {
-                FileInputStream file = new FileInputStream(archivo);
-                BufferedInputStream buffer = new BufferedInputStream(file);
-                ObjectInputStream input = new ObjectInputStream(buffer);
-
-                Object object = input.readObject();
-                if( object instanceof SpreadsheetView )
-                {
-                    table = (SpreadsheetView) object;
-                    ObservableList<SpreadsheetColumn> columns = table.getColumns();
-                    if(columns.get(0).isColumnFixable())
-                        table.getFixedColumns().remove(columns.get(0));
-                    if(this.spreadSheet.isRowFixable(0))
-                        this.spreadSheet.getFixedRows().remove(0);
-                    return table;
-                }
-            }
-            
-            
-        }
-        catch(Exception ex)
-        {
-            System.out.println("Table can't be loaded");
-        } 
-        
-        return null;
-    }
+//    private SpreadsheetView getTableCopy()
+//    {
+//        try
+//        {
+//            FileOutputStream file = new FileOutputStream("tableView.dat");
+//            BufferedOutputStream buffer = new BufferedOutputStream(file);
+//            ObjectOutputStream output = new ObjectOutputStream(buffer);
+//            output.writeObject(this.spreadSheet);
+//            output.close();
+//            buffer.close();
+//            file.close();
+//        }
+//        catch(Exception ex)
+//        {
+//            System.out.println("A problem was ocurred with the exportation.");
+//        }
+//        
+//        
+//        SpreadsheetView table;
+//        try
+//        {
+//            File archivo = new File("tableView.dat");
+//            if (archivo.exists()) {
+//                FileInputStream file = new FileInputStream(archivo);
+//                BufferedInputStream buffer = new BufferedInputStream(file);
+//                ObjectInputStream input = new ObjectInputStream(buffer);
+//
+//                Object object = input.readObject();
+//                if( object instanceof SpreadsheetView )
+//                {
+//                    table = (SpreadsheetView) object;
+//                    ObservableList<SpreadsheetColumn> columns = table.getColumns();
+//                    if(columns.get(0).isColumnFixable())
+//                        table.getFixedColumns().remove(columns.get(0));
+//                    if(this.spreadSheet.isRowFixable(0))
+//                        this.spreadSheet.getFixedRows().remove(0);
+//                    return table;
+//                }
+//            }
+//            
+//            
+//        }
+//        catch(Exception ex)
+//        {
+//            System.out.println("Table can't be loaded");
+//        } 
+//        
+//        return null;
+//    }
     
-    private void dialogInitial()
-    {
-        TextInputDialog dialog = new TextInputDialog("");
-        dialog.setTitle("Input alphabet");
-        dialog.setHeaderText("Please, insert symbols for alphabet (separated by comma ,)");
-        dialog.setContentText("Symbols:");
-        
-        Optional<String> result = dialog.showAndWait();
-        
-        if (result.isPresent())
-        {            
-            String[] alphabet = result.get().replaceAll("\\s","").split(",");
-            char[] chars = new char[alphabet.length];
-            Alphabet alph = new Alphabet();
-            AlphabetView alphView = new AlphabetView();
-            AlphabetController alphController = new AlphabetController(alph, alphView);
-            try
-            {
-                for(String str : alphabet)
-                {
-                    if(!alphController.alphabetContains(str.charAt(0))) 
-                        alphController.addCharacter(str.charAt(0));
-                }
-                this.automaton = new NFA(new ArrayList<>(), alphController, new ArrayList<>(), null, this);
-            }
-            catch(Exception ex)
-            {
-                System.exit(0);
-            }
-        }
-        else
-        {
-            System.exit(0);
-        }
-    }
+    
+    
+//    private void dialogInitial()
+//    {
+//        TextInputDialog dialog = new TextInputDialog("");
+//        dialog.setTitle("Input alphabet");
+//        dialog.setHeaderText("Please, insert symbols for alphabet (separated by comma ,)");
+//        dialog.setContentText("Symbols:");
+//        
+//        Optional<String> result = dialog.showAndWait();
+//        
+//        if (result.isPresent())
+//        {            
+//            String[] alphabet = result.get().replaceAll("\\s","").split(",");
+//            char[] chars = new char[alphabet.length];
+//            Alphabet alph = new Alphabet();
+//            AlphabetView alphView = new AlphabetView();
+//            AlphabetController alphController = new AlphabetController(alph, alphView);
+//            try
+//            {
+//                for(String str : alphabet)
+//                {
+//                    if(!alphController.alphabetContains(str.charAt(0))) 
+//                        alphController.addCharacter(str.charAt(0));
+//                }
+//                this.automaton = new NFA(new ArrayList<>(), alphController, new ArrayList<>(), null, this);
+//            }
+//            catch(Exception ex)
+//            {
+//                System.exit(0);
+//            }
+//        }
+//        else
+//        {
+//            System.exit(0);
+//        }
+//    }
     
     //Used for the creation of transitions
     void stateClicked(StateController statecontroller) {
@@ -654,7 +681,13 @@ public class AFNDController implements Initializable
                 
                 if(!doubleTransition){
                     
-                    String[] chars = dialogTransition("Create");
+                    String[] chars = null;
+                    if(this.automaton instanceof NFA){
+                        chars = dialogTransitionNFA("Create");
+                    }                        
+                    else{
+                        chars = dialogTransitionDFA("Create", transitionStateFrom);
+                    }
                     
                     buttonTransition.fire();
                     if(chars.length>0){
@@ -677,16 +710,18 @@ public class AFNDController implements Initializable
                                     if (automaton.getAlphabet().alphabetContains(c2)){
                                         if(label.isEmpty()){                                
                                             label = label.concat(c2s);
-                                            if(this.automaton instanceof NFA){
+                                            /*if(this.automaton instanceof NFA){
                                                 ((NFA)this.automaton).addTransition(transitionStateFrom, transitionStateTo, c2s);
-                                            }
+                                            }*/
+                                            this.automaton.addTransition(transitionStateFrom, transitionStateTo, c2s);
                                         }
                                         else
                                             if (!label.contains(c2s))
                                                 label = label.concat(", ").concat(c2s);
-                                                if(this.automaton instanceof NFA){
+                                                /*if(this.automaton instanceof NFA){
                                                     ((NFA)this.automaton).addTransition(transitionStateFrom, transitionStateTo, c2s);
-                                                }
+                                                }*/
+                                                this.automaton.addTransition(transitionStateFrom, transitionStateTo, c2s);
                                     }
                                 }
 
@@ -794,8 +829,198 @@ public class AFNDController implements Initializable
             System.out.println("Username=" + usernamePassword.getKey() + ", Password=" + usernamePassword.getValue());
         });*/
     }
+    
+    private ArrayList<String> dialogNew(){
+        Dialog<ArrayList<String>> dialog = new Dialog<>();
+        dialog.setTitle("New automaton");
+        
+        ButtonType loginButtonType = new ButtonType("Create", ButtonData.OK_DONE);
+        ButtonType cancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, cancel);
+        
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 20, 10, 10));
+        
+        TextField alpha = new TextField();
+        alpha.setPromptText("Alphabet");
+        ChoiceBox<String> automatonType = new ChoiceBox();
+        automatonType.getItems().addAll("DFA (Deterministic Finite Automaton)", "NFA (Nondeterministic Finite Automaton)");
+        automatonType.getSelectionModel().selectFirst();
+        TextField width = new TextField();
+        width.setPromptText("Width");
+        TextField height = new TextField();
+        height.setPromptText("Height");
+        
+        width.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                if(newValue.equals("0"))
+                     width.setText("");
+                if (!newValue.matches("\\d*")) {
+                    width.setText(newValue.replaceAll("[^\\d]", ""));
+                }
+            }
+        });
+        
+        height.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                if(newValue.equals("0"))
+                     height.setText("");
+                if (!newValue.matches("\\d*")) {
+                    height.setText(newValue.replaceAll("[^\\d]", ""));
+                }
+            }
+        });
+        
+        UnaryOperator<TextFormatter.Change> filter = new UnaryOperator<TextFormatter.Change>() {
 
-    String[] dialogTransition(String buttonLabel){
+            @Override
+            public TextFormatter.Change apply(TextFormatter.Change t) {
+
+                if(t.isAdded()){
+                    if(!t.getText().isEmpty()){                        
+                        
+                        if(t.getControlNewText().length()>1){
+                            if(!t.getControlText().contains(t.getText())){
+                                t.setText(", ".concat(t.getText()));
+                                t.selectRange(t.getCaretPosition()+2, t.getCaretPosition()+2);
+                            }
+                            else{
+                                t.setText("");
+                            }
+                                
+                        }
+                        
+                    }                    
+                }
+
+                return t;
+            }
+        };
+        
+        alpha.setTextFormatter(new TextFormatter<>(filter));
+        
+        alpha.caretPositionProperty().addListener(new InvalidationListener() {
+            @Override
+            public void invalidated(Observable observable) {
+                Platform.runLater(new Runnable() {
+                @Override public void run() {
+                  alpha.deselect();
+                  alpha.positionCaret(alpha.getText().length());
+                }
+              });
+            }
+        });
+        
+        alpha.addEventFilter(KeyEvent.ANY, new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent keyEvent) {
+                switch (keyEvent.getCode()) {
+                    // block cursor control keys.
+                    case BACK_SPACE:
+                        alpha.deletePreviousChar();
+                        break;
+                    case LEFT:
+                    case RIGHT:
+                    case UP:
+                    case DOWN:
+                    case PAGE_UP:
+                    case PAGE_DOWN:
+                    case HOME:
+                    case END:
+                        keyEvent.consume();
+                        break;
+                    default:
+                        
+                        break;
+                        
+                }
+            }
+        });
+        
+        grid.add(new Label("Alphabet:"), 0, 0);
+        grid.add(alpha, 1, 0);
+        grid.add(new Label("Type of automaton:"), 0, 1);
+        grid.add(automatonType, 1, 1);
+        grid.add(new Label("Width:"),0,2);
+        grid.add(width, 1, 2);
+        grid.add(new Label("Height:"),0,3);
+        grid.add(height, 1, 3);
+
+        // Enable/Disable login button depending on whether a username was entered.
+        javafx.scene.Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
+        loginButton.setDisable(true);
+
+        
+        
+        // Do some validation (using the Java 8 lambda syntax).
+        alpha.textProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue.equals(oldValue.concat(",")) || newValue.equals(oldValue.concat(" "))){
+                alpha.setText(oldValue);
+            }
+            
+            if(newValue.trim().isEmpty())
+                isNewAlphaEmpty = true;
+            else
+                isNewAlphaEmpty = false;
+            
+            loginButton.setDisable(isNewAlphaEmpty || isNewHeightEmpty || isNewWidthEmpty);   
+            
+        });
+        
+        width.textProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue.trim().isEmpty())
+                isNewWidthEmpty = true;
+            else
+                isNewWidthEmpty = false;
+            
+            loginButton.setDisable(isNewAlphaEmpty || isNewHeightEmpty || isNewWidthEmpty);
+            
+        });
+        
+        height.textProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue.trim().isEmpty())
+                isNewHeightEmpty = true;
+            else
+                isNewHeightEmpty = false;
+            
+            loginButton.setDisable(isNewAlphaEmpty || isNewHeightEmpty || isNewWidthEmpty);            
+        });
+                
+        loginButton.setDisable(isNewAlphaEmpty || isNewWidthEmpty || isNewHeightEmpty);
+        
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Request focus on the username field by default.
+        Platform.runLater(() -> alpha.requestFocus());
+
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == loginButtonType) {
+                ArrayList<String> ret = new ArrayList<>();
+                ret.add(alpha.getText());
+                ret.add(automatonType.getValue().substring(0, 3));
+                ret.add(width.getText());
+                ret.add(height.getText());
+                return ret;
+            }
+            return null;
+        });
+        
+        Optional<ArrayList<String>> result = dialog.showAndWait();
+        
+        if(!result.isPresent())
+            System.exit(0);            
+                
+        return result.get();
+        
+    }
+
+    String[] dialogTransitionNFA(String buttonLabel){
         // Create the custom dialog.
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("New transition");
@@ -981,6 +1206,184 @@ public class AFNDController implements Initializable
         }
     }
 
+    String[] dialogTransitionDFA(String buttonLabel, StateController from){
+        // Create the custom dialog.
+        Dialog<Pair<String, String>> dialog = new Dialog<>();
+        dialog.setTitle("New transition");
+        dialog.setHeaderText("Introduce the characters for the transition.\nOnly are accepted the characters cointained in the alphabet of the automaton.");
+
+        // Set the button types.
+        ButtonType loginButtonType = new ButtonType(buttonLabel, ButtonData.OK_DONE);
+        ButtonType cancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, cancel);
+
+        // Create the username and password labels and fields.
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 20, 10, 10));
+
+        TextField characters = new TextField();
+        characters.setPromptText("Characters");
+        CheckBox remChars = new CheckBox();
+        
+        UnaryOperator<TextFormatter.Change> filter = new UnaryOperator<TextFormatter.Change>() {
+
+            @Override
+            public TextFormatter.Change apply(TextFormatter.Change t) {
+
+                if(t.isAdded()){
+                    if(!t.getText().isEmpty()){
+                        
+                        /*ArrayList<TransitionController> transitions = from.getStateModel().getFromState();
+                        if(!transitions.isEmpty()){
+                            for(TransitionController tran : transitions){
+                                if(tran.getTransitionView().getText().getText().contains(t.getText())){                                    
+                                    t.setText("");
+                                    return t;
+                                }
+                            }                       
+                        }*/
+                        
+                        if(!automaton.getAlphabet().getCharacters().contains(t.getText().charAt(0))){
+                            t.setText("");
+                        }
+                        
+                        else{                            
+                            if(t.getControlNewText().length()>1 ){
+                                if(!t.getControlText().contains(t.getText())){
+                                    t.setText(", ".concat(t.getText()));
+                                    t.selectRange(t.getCaretPosition()+2, t.getCaretPosition()+2);
+                                }
+                                else
+                                    t.setText("");
+                                
+                            }
+                        }
+                        
+                    }                    
+                }
+
+                return t;
+            }
+        };
+        
+        characters.setTextFormatter(new TextFormatter<>(filter));
+        
+        characters.caretPositionProperty().addListener(new InvalidationListener() {
+            @Override
+            public void invalidated(Observable observable) {
+                Platform.runLater(new Runnable() {
+                @Override public void run() {
+                  characters.deselect();
+                  characters.positionCaret(characters.getText().length());
+                }
+              });
+            }
+        });
+        
+        characters.addEventFilter(KeyEvent.ANY, new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent keyEvent) {
+                switch (keyEvent.getCode()) {
+                    // block cursor control keys.
+                    case BACK_SPACE:
+                        characters.deletePreviousChar();
+                        break;
+                    case LEFT:
+                    case RIGHT:
+                    case UP:
+                    case DOWN:
+                    case PAGE_UP:
+                    case PAGE_DOWN:
+                    case HOME:
+                    case END:
+                        keyEvent.consume();
+
+                }
+            }
+        });
+        
+
+        grid.add(new Label("Characters:"), 0, 0);
+        grid.add(characters, 1, 0);
+        grid.add(new Label("Remaining characters:"), 0, 1);
+        grid.add(remChars, 1, 1);
+
+        // Enable/Disable login button depending on whether a username was entered.
+        javafx.scene.Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
+        loginButton.setDisable(true);
+
+        boolean isTextEmpty = true;
+        boolean isVoidUnselected = true;
+        
+        
+        // Do some validation (using the Java 8 lambda syntax).
+        characters.textProperty().addListener((observable, oldValue, newValue) -> {
+                       
+            loginButton.setDisable(newValue.trim().isEmpty());
+            remChars.selectedProperty().addListener((observable2, oldValue2, newValue2) -> {
+                loginButton.setDisable(!newValue2 && newValue.trim().isEmpty());          
+            });
+        });
+        
+        remChars.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            loginButton.setDisable(!newValue);
+            characters.setDisable(newValue);
+        });
+        
+        isTextEmpty = characters.getCharacters().toString().trim().isEmpty();
+        
+        isVoidUnselected = !(remChars.isSelected());
+        
+        loginButton.setDisable(isTextEmpty && isVoidUnselected);
+        
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Request focus on the username field by default.
+        Platform.runLater(() -> characters.requestFocus());
+
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == loginButtonType) {
+                if (remChars.isSelected())
+                    return new Pair<>(characters.getText(), "true");
+                else
+                    return new Pair<>(characters.getText(), "false");
+            }
+            return null;
+        });
+        
+        Optional<Pair<String, String>> result = dialog.showAndWait();
+        
+        if(!result.isPresent())
+            return new String[0];
+        
+        if(remChars.isSelected()){ 
+            String sRem = new String();
+            ArrayList<TransitionController> transitions = from.getStateModel().getFromState();
+            ArrayList<Character> alpha = automaton.getAlphabet().getCharacters();
+            
+            for(Character c : alpha){
+                sRem = sRem.concat(c.toString());
+            }
+            
+            for(TransitionController tran : transitions){
+                for(String st : tran.getTransitionView().getText().getText().split(", ")){
+                    sRem = sRem.replace(st, "");
+                }
+            } 
+            
+            String[] chars = sRem.split("");
+            return chars;
+        }
+        else{
+            String[] chars = characters.getText().replaceAll("\\s","").split(",");   
+            return chars;
+        }
+    }
+
     @FXML
     private boolean readWord(ActionEvent event)
     {
@@ -1060,8 +1463,11 @@ public class AFNDController implements Initializable
             return false;
         }
         
-        else
-        {
+        else if(this.automaton instanceof DFA && !isValidDFA()){
+            return false;
+        }
+        
+        else{
             return this.automaton.readWord(wordField.getText());
         }
         /*else
@@ -1141,14 +1547,22 @@ public class AFNDController implements Initializable
             shortest.setHeaderText("There is no viable path");
             shortest.showAndWait();
         }   */
-        if (sp.length() == 0)
+        if (sp == null){
+            Alert shortest = new Alert(Alert.AlertType.INFORMATION);
+            shortest.setTitle("Shotest path");
+            shortest.setHeaderText("The shortest doesn't exist");
+            shortest.showAndWait();
+        }
+        
+        else if (sp.length() == 0)
         {
             Alert shortest = new Alert(Alert.AlertType.INFORMATION);
             shortest.setTitle("Shotest path");
             shortest.setHeaderText("The shortest path is:");
-            shortest.setContentText("\"\"");
+            shortest.setContentText("");
             shortest.showAndWait();
         }
+        
         else
         {
             Alert shortest = new Alert(Alert.AlertType.INFORMATION);
@@ -1360,7 +1774,7 @@ public class AFNDController implements Initializable
         return false;
     }
     
-    void intersectionDeleteTransition(TransitionController t) {
+    public void intersectionDeleteTransition(TransitionController t) {
         QuadCurve transitionCurve = t.getTransitionView().getCurve();  
         
         Color color = Color.BLACK;     
@@ -1887,10 +2301,10 @@ public class AFNDController implements Initializable
             result.showAndWait();
             return false;
         }
-        
+        /*  
         String sp = null;
         Dijkstra d = new Dijkstra(automaton);
-               
+             
         d.sp();
         sp = d.getShortestWord();
         
@@ -1902,7 +2316,7 @@ public class AFNDController implements Initializable
             shortest.setHeaderText("There is no viable path");
             shortest.showAndWait();
             return false;
-        } 
+        } */
         
         return true;
     }
@@ -1925,6 +2339,39 @@ public class AFNDController implements Initializable
             return true;
         }
         return false;
+    }
+
+    private boolean isValidDFA() {
+        if(isValidNFA()){
+            for(StateController state : automaton.getStates()){
+                ArrayList<Character> alpha = automaton.getAlphabet().getCharacters();
+                String transitionText = new String();
+                for(TransitionController transition : state.getStateModel().getFromState()){
+                    transitionText = transitionText.concat(transition.getTransitionView().getText().getText());
+                
+                }
+                for(Character c : alpha){
+                        //System.out.println(t);
+                        if (!transitionText.contains(c.toString())){
+                            rejectAutomaton();
+                            return false;
+                        }
+                    }
+            }
+            //acceptAutomaton();
+            return true;
+            
+        }
+        rejectAutomaton();
+        return false;
+    }
+    
+    public ArrayList<TransitionController> getTrasitionsList(){
+        return this.transitionsList;
+    }
+    
+    public ArrayList<TransitionController> getTrasitionsRedList(){
+        return this.transitionsRedList;
     }
     
 }

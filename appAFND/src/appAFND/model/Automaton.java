@@ -36,7 +36,7 @@ public abstract class Automaton {
     
     
     
-    abstract boolean addTransition(StateController from, StateController to, String transition);
+    public abstract boolean addTransition(StateController from, StateController to, String transition);
     
     abstract boolean removeTransition(StateController from, StateController to, String transition);
     
@@ -115,6 +115,8 @@ public abstract class Automaton {
         
         for (char c : characters){
             if (!alphabet.alphabetContains(c)){
+                System.out.println(c);
+                System.out.println(alphabet.getCharacters());
                 // Alerta por si la letra no esta contenida en el alfabeto.
                 // Rellenar la alerta.
                 afndController.rejectAutomaton();

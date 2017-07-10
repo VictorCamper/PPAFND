@@ -175,7 +175,14 @@ public class TransitionView {
             {
                 //boolean continuee = false;
                 Automaton automaton = afndController.getAutomaton();
-                String[] chars = afndController.dialogTransition("Modify");
+                String[] chars = null;
+                if (automaton instanceof NFA){
+                    chars = afndController.dialogTransitionNFA("Modify");
+                }
+                else{
+                    chars = afndController.dialogTransitionDFA("Modify", from);
+                }
+                
                 if(chars!=null){
                     if (!chars[0].isEmpty()){ 
                         boolean existCharValid = false;
@@ -197,14 +204,14 @@ public class TransitionView {
                                     if(label.isEmpty()){                                
                                         label = label.concat(c2s);
                                         if(automaton instanceof NFA){
-                                            //((NFA)automaton).addTransition(from, to, c2s);
+                                            ((NFA)automaton).addTransition(from, to, c2s);
                                         }
                                     }
                                     else
                                         if (!label.contains(c2s))
                                             label = label.concat(", ").concat(c2s);
                                             if(automaton instanceof NFA){
-                                                //((NFA)automaton).addTransition(from, to, c2s);
+                                                ((NFA)automaton).addTransition(from, to, c2s);
                                             }
                                 }
                             }
@@ -310,6 +317,10 @@ public class TransitionView {
         this.tController = t;
     }
     
+    public Text getText(){
+        return this.text;
+    }
+    
     private double calcX(double Ax, double Ay, double Bx, double By, double radius, double strokeWidth) {
         double r = radius+(strokeWidth/2);
         double distance = Math.sqrt(Math.pow(Bx-Ax,2) + Math.pow(By-Ay,2));
@@ -332,7 +343,9 @@ public class TransitionView {
         this.curve.setStroke(Color.web("#0169CE"));
     }
 
-    
+    public void removeTransition(){
+        afndController.getGroupTransitions().getChildren().remove(this.group);
+    }
 
 
     public class Arrow extends Polygon {

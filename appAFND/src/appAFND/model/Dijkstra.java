@@ -113,10 +113,17 @@ public class Dijkstra
             String path = "";
             
             int indexFinal = this.getIndex(state);
+            
+            
             while (indexFinal != 0)
             {
-                path += this.path[indexFinal]; // indexFinal is not a good name
-                indexFinal = this.from[indexFinal];
+                try{
+                    path += this.path[indexFinal]; // indexFinal is not a good name
+                    indexFinal = this.from[indexFinal];
+                }catch(Exception e){
+                    return null;
+                }
+                
             }
             
             path = new StringBuilder(path).reverse().toString();
